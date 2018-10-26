@@ -1,6 +1,7 @@
 <template>
   <div>
     <Header />
+    <Banner />
     <Nav />
     <nuxt/>
     <Footer />
@@ -10,12 +11,13 @@
 <script>
 import Header from '@/components/Header'
 import Nav from '@/components/Nav'
-
+import Banner from "@/components/Banner.vue"
 import Footer from '@/components/Footer'
 export default {
   components: {
     Header,
     Nav,
+    Banner,
     Footer
   }
 }
@@ -72,7 +74,8 @@ html {
 }
 
 .container {
-  min-height: 10vh;
+  /*min-height: 10vh;*/
+  min-height: 300px;
   display: flex;
   flex-flow: column nowrap;
   align-items: center;

@@ -1,7 +1,7 @@
 <template>
 
   <div v-if="authorized">
-    <Banner />
+    <!-- Banner / -->
     <h1 class="title">
       {{ adopt.title }}
     </h1>
@@ -38,32 +38,16 @@
 </template>
 
 <script>
-/*
-  DrainAdoption is an interactive map for showing and selecting drain markers.
-    ref: https://www.npmjs.com/package/vue2-google-maps
-    ref: https://developers.google.com/maps/documentation/javascript/examples/marker-simple
-  nuxt.config.js
-  the docs are wrong with regards to build externals
-    ref: https://nuxtjs.org/api/configuration-build
-    ref: https://github.com/xkjyeah/vue-google-maps/issues/498
-  mapOptions
-    ref: https://developers.google.com/maps/documentation/javascript/reference/
-    ref: https://developers.google.com/maps/documentation/javascript/maxzoom
-  markers:
-    ref: https://developers.google.com/maps/documentation/javascript/markers
-  mapclick
-    ref: https://github.com/xkjyeah/vue-google-maps/wiki/vue-google-maps-FAQ
-  mapdrag
-    ref: https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API
-*/
-import Banner from '@/components/Banner.vue'
+
+// import Banner from '@/components/Banner.vue'
 import {gmapApi} from '~/node_modules/vue2-google-maps/src/main'
 
 import World from '@/components/World.vue'
 export default {
-  components: {
+  /* components: {
     Banner
   },
+  */
   data() {
     return {
       adopt: {

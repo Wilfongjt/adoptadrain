@@ -1,6 +1,6 @@
 <template>
   <div class="band">
-    <Banner />
+    <!-- Banner / -->
     <h1 class="title">
       {{ title }}
     </h1>
@@ -11,12 +11,13 @@
 </template>
 
 <script>
-import Banner from "@/components/Banner.vue"
+// import Banner from "@/components/Banner.vue"
 
 export default {
-  components: {
+  /*components: {
     Banner
   },
+  */
   data() {
     return {
       title: 'Stats',

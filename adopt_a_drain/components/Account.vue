@@ -2,18 +2,16 @@
   <div class="band">
     <!-- Banner / -->
     <h1 class="title">
-      {{ authenticate.title }}
+      {{ account.title }}
     </h1>
     <h2 class="subtitle">
-      {{ authenticate.subtitle }}
+      {{ account.subtitle }}
     </h2>
-    <div v-if="authorized">
-      <h1>Sign Out</h1>
-      <button @click="$store.commit('set_authenticated', false)">Sign Out</button>
-    </div>
     <div v-if="!authorized">
-      <h1>Temporary Sign In</h1>
-      <button @click="$store.commit('set_authenticated',true)">Sign In</button>
+      <h1>Create Account</h1>
+    </div>
+    <div v-if="authorized">
+      <h1>Your Account</h1>
     </div>
   </div>
 </template>
@@ -28,9 +26,9 @@ export default {
   */
   data() {
     return {
-      authenticate: {
-        title: 'Authenticate',
-        subtitle: 'Because.'
+      account: {
+        title: 'Account',
+        subtitle: 'A little about you.'
       }
     }
   },

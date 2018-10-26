@@ -1,16 +1,19 @@
 <template>
   <section class="container">
-    <Authenticate />
+    <!-- Banner / -->
+    <Account />
 
   </section>
 </template>
 
 <script>
 
-import Authenticate from '@/components/Authenticate.vue'
+import Account from '@/components/Account.vue'
+// import Banner from "@/components/Banner.vue"
 export default {
   components: {
-    Authenticate
+    /* Banner, */
+    Account
   },
   computed: {
     authorized: function () {

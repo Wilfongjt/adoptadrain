@@ -1,6 +1,6 @@
 <template>
   <div class="band">
-    <Banner />
+    <!-- Banner / -->
     <h2 class="subtitle">
       Volunteer to keep street drain clear and clean.
     </h2>
@@ -8,11 +8,12 @@
 </template>
 
 <script>
-import Banner from "@/components/Banner.vue"
+// import Banner from "@/components/Banner.vue"
 export default {
-  components: {
+  /* components: {
     Banner
   }
+  */
 }
 </script>
 

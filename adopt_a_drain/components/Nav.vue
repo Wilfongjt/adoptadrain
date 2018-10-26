@@ -1,15 +1,12 @@
 <template>
-
   <nav>
     <ul>
       <li><nuxt-link to="/">Home</nuxt-link></li>
       <li><nuxt-link to="/adopt">Adopt</nuxt-link></li>
-      <li><nuxt-link to="/login">Login</nuxt-link></li>
-      <li v-if="authorized"><button @click="$store.commit('set_authenticated',false)">Sign Out</button></li>
-      <li>{{ salutation }}</li>
+      <li><nuxt-link to="/login">{{lbl_authenticated}}</nuxt-link></li>
+      <li><nuxt-link to="/account">{{ lbl_account }}</nuxt-link></li>
     </ul>
   </nav>
-
 </template>
 
 <script>
@@ -28,9 +25,20 @@ export default {
       }
       return ""
     },
+
+    lbl_account: function () {
+      if (this.$store.state.authenticated) {
+        return this.$store.state.user.name
+      }
+      return "Account"
+    },
     authorized: function () {
       if ( !this.$store.state.authenticated ){ return false }
       return true
+    },
+    lbl_authenticated: function () {
+    if ( this.$store.state.authenticated ){ return 'Sign Out' }
+    return 'Sign In'
     }
   }
 }
@@ -52,9 +60,20 @@ ul {
   display: flex;
   justify-content: center;
   align-items: center;
+  background-color: #ECF0F1;
+  /* background-color: #5DADE2; */
+
 }
 
 li {
-  margin: 0 10px;
+  margin: 0 10px 4px;
 }
+a {
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: none;
+  font-weight: bold;
+}
+
 </style>

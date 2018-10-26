@@ -1,6 +1,6 @@
 <template>
   <div class="band">
-    <Banner />
+    <!-- Banner / -->
     <h1 class="title">
       {{ dataworld.title }}
     </h1>
@@ -14,12 +14,13 @@
 </template>
 
 <script>
-import Banner from "@/components/Banner.vue"
+// import Banner from "@/components/Banner.vue"
 import axios from 'axios'
 export default {
-  components: {
+  /* components: {
     Banner
   },
+  */
   data() {
     return {
       dataworld: {
