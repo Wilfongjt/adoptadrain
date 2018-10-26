@@ -1,0 +1,14 @@
+version: '3'
+services:
+  db:
+    image: library/postgres:9.6
+    ports:
+      - "5432:5432"
+  web:
+    build: ./adopt_a_drain
+    volumes:
+      - ./adopt_a_drain:/usr/src/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
