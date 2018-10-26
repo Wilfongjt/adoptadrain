@@ -7,6 +7,8 @@ A containerized version of adopt-a-drain (AAD).
 * Docker-compose 
 * Separate container for each service
 * A web site to demonstrate services
+* Nuxtjs
+
 
 ## Prerequisites
 * Install of [Docker](https://docs.docker.com/install/) 
