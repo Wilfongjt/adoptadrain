@@ -1,3 +1,5 @@
+// vuelidate
+import Vue from 'vue'
 const pkg = require('./package')
 /* do not use dotenv in production env  */
 if (process.env.NODE_ENV !== 'production') require('dotenv').config()
@@ -41,7 +43,6 @@ module.exports = {
   */
   plugins: [
     { src: '~/plugins/vue2-google-maps.js' }
-
   ],
 
   /*
@@ -86,7 +87,6 @@ module.exports = {
             }
           }
         ]
-
       }
 
     }

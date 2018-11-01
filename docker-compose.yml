@@ -4,6 +4,13 @@ services:
     image: library/postgres:9.6
     ports:
       - "5432:5432"
+    volumes:
+      - ~/data_df/postgres-persistence:/usr/src/data
+      - "./adopt_a_drain/scripts/db/01.create.db.sql:/docker-entrypoint-initdb.d/01.create.db.sql"
+      - "./adopt_a_drain/scripts/db/02.create.table.users.sql:/docker-entrypoint-initdb.d/02.create.table.users.sql"
+      - "./adopt_a_drain/scripts/db/03.create.table.things.sql:/docker-entrypoint-initdb.d/03.create.table.things.sql"
+      - "./adopt_a_drain/scripts/db/04.create.table.reminders.sql:/docker-entrypoint-initdb.d/04.create.table.reminders.sql"
+
   web:
     build: ./adopt_a_drain
     volumes:

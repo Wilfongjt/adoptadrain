@@ -1,8 +1,12 @@
 # adoptadrain
-
 Adopt a Drain
-
 A containerized version of adopt-a-drain (AAD).
+## Why
+You may ask why rewrite an application that runs fine as Rudy appliction. 
+* Node's dependencies are easier for me to resolve
+* Node is a little less fragile than ruby
+* Nuxtjs, Vuejs and Ruby are all pretty organized in terms of applicaton folders but Vuejs and Nuxtjs are both way more organized with regards to code.  
+* Vuejs Components keep a develper from creating too much abstraction.  Ruby code gets smeared accross files until all meaning is lost.
 
 ## Features
 
@@ -41,6 +45,7 @@ echo DW_AUTH_TOKEN=<get-data.world-api-token> >> .env
 # URL for drain data
 echo OPEN_SOURCE=https://api.data.world/v0/sql/citizenlabs/grb-storm-drains >> .env
 ```
+## Data
 
 
 ## Docker Compose
