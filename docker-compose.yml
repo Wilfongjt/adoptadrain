@@ -2,15 +2,48 @@ version: '3'
 services:
   db:
     image: library/postgres:9.6
+    container_name: aad_database
     ports:
       - "5432:5432"
     volumes:
-      - ~/data_df/postgres-persistence:/usr/src/data
-      - "./adopt_a_drain/scripts/db/01.create.db.sql:/docker-entrypoint-initdb.d/01.create.db.sql"
-      - "./adopt_a_drain/scripts/db/02.create.table.users.sql:/docker-entrypoint-initdb.d/02.create.table.users.sql"
-      - "./adopt_a_drain/scripts/db/03.create.table.things.sql:/docker-entrypoint-initdb.d/03.create.table.things.sql"
-      - "./adopt_a_drain/scripts/db/04.create.table.reminders.sql:/docker-entrypoint-initdb.d/04.create.table.reminders.sql"
-
+      - "~/data_df/pgdata:/var/lib/postgresql/data"
+      - "./scripts/db/01.create.db.sql:/docker-entrypoint-initdb.d/01.create.db.sql"
+      - "./scripts/db/02.create.table.users.sql:/docker-entrypoint-initdb.d/02.create.table.users.sql"
+      - "./scripts/db/03.create.table.things.sql:/docker-entrypoint-initdb.d/03.create.table.things.sql"
+      - "./scripts/db/04.create.table.reminders.sql:/docker-entrypoint-initdb.d/04.create.table.reminders.sql"
+      - "./scripts/db/05.create.users.groups.sql:/docker-entrypoint-initdb.d/05.create.users.groups.sql"
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+  mariadb:
+    image: bitnami/mariadb:latest
+    volumes:
+      - ~/data_df/mariadb-persistence:/bitnami
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+  mongodb:
+    image: 'bitnami/mongodb:latest'
+    volumes:
+      - '~/data_df/mongodb-persistence:/bitnami'
+  redis:
+    image: 'bitnami/redis:latest'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - '~/data_df/redis-persistence:/bitnami'
+  dreamfactory:
+    image: dreamfactorysoftware/df-docker:latest
+    depends_on:
+      - mariadb
+      - mongodb
+      - redis
+      - db
+    ports:
+      - '8080:80'
+      - '443:443'
+    volumes:
+      - ~/data_df/dreamfactory-persistence:/bitnami
+    environment:
+      - LOG_TO_STDOUT=true
   web:
     build: ./adopt_a_drain
     volumes:
@@ -18,4 +51,14 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - db
+      - dreamfactory
+
+volumes:
+  mariadb_data:
+    driver: local
+  mongodb_data:
+    driver: local
+  redis_data:
+    driver: local
+  dreamfactory_data:
+    driver: local
