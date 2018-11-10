@@ -6,6 +6,7 @@ const createStore = () => {
       counter: 0,
       page: null,
       authenticated: false,
+      guest_session_token: null,
       user: {name: undefined, role: 0}
     }),
     mutations: {
@@ -25,6 +26,9 @@ const createStore = () => {
           state.user.name='Temp User Name'
           state.user.role=1
         }
+      },
+      set_guest_session_token( guest_session_token ){
+        state.guest_session_token = guest_session_token
       }
     }
   })
