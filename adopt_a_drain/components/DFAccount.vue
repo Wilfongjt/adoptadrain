@@ -1,0 +1,283 @@
+<template>
+  <div class="band">
+
+    <!-- Banner / -->
+    <h1 class="title">
+      {{ account.title }}
+    </h1>
+
+    <h2 class="subtitle">
+      {{ account.subtitle }}
+    </h2>
+
+    <div v-if="!authorized">
+      <h2>Create Account</h2>
+      <br>
+    </div>
+
+    <div v-if="authorized">
+      <h2>Your Account</h2>
+      <br>
+    </div>
+
+    <form @submit.prevent="submit">
+      <div
+        :class="{ 'form-group--error': $v.form.data.email.$error }"
+        class="form-group">
+        <label class="form__label">Email</label>
+        <input
+          v-model.trim="$v.form.data.email.$model"
+          class="form__input">
+
+      </div>
+
+      <div
+        v-if="!$v.form.data.email.goodemail"
+        class="error">Bad email address format</div>
+
+      <div
+        v-if="!$v.form.data.email.required"
+        class="error">Email is required</div>
+
+      <div
+        v-if="!$v.form.data.email.minLength"
+        class="error">Email must have at least {{ $v.form.data.email.$params.minLength.min }} letters.</div>
+
+      <div
+        :class="{ 'form-group--error': $v.form.data.password.$error }"
+        class="form-group" >
+        <label class="form__label">Password</label>
+        <input
+          v-model.trim="$v.form.data.password.$model"
+          class="form__input">
+      </div>
+
+      <div
+        v-if="!$v.form.data.password.required"
+        class="error">Password is required</div>
+
+      <div
+        v-if="!$v.form.data.password.minLength"
+        class="error">{{ $v.form.data.password.$params.minLength.min }} characters required.</div>
+
+      <div
+        v-if="!$v.form.data.password.onecap"
+        class="error">A capital letter is required.</div>
+
+      <div
+        v-if="!$v.form.data.password.onelowercase"
+        class="error">A lowercase letter is required.</div>
+
+      <div
+        v-if="!$v.form.data.password.onesymbol"
+        class="error">Symbol is required.</div>
+
+      <div
+        v-if="!$v.form.data.password.onenumber"
+        class="error">A number is required.</div>
+
+      <button
+        :disabled="form.submitStatus === 'PENDING'"
+        class="button"
+        type="submit">Submit!</button>
+      <p
+        v-if="form.submitStatus === 'OK'"
+        class="typo__p">Thanks for your submission!</p>
+      <p
+        v-if="form.submitStatus === 'ERROR'"
+        class="typo__p">Please fill the form correctly.</p>
+      <p
+        v-if="form.submitStatus === 'DUPLICATE'"
+        class="typo__p">Account already exists.</p>
+      <p
+        v-if="form.submitStatus === 'PENDING'"
+        class="typo__p">Sending...</p>
+    </form>
+
+  </div>
+</template>
+
+<script>
+
+import axios from 'axios'
+import { validationMixin } from 'vuelidate'
+import { required, minLength, helpers } from 'vuelidate/lib/validators'
+
+const field_validate = function (astr, test) {
+  let rc = false
+  if(astr.length === 0){ // suppress warnings when field is blank
+    rc = true
+  } else {
+    rc = test.test(astr)
+  }
+  return rc
+}
+
+const goodemail = function (astr) {
+  let email_regex = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/
+  return field_validate(astr, email_regex)
+}
+
+const onecap = function (astr) {
+  let test = /[A-Z]/
+  return field_validate(astr, test)
+}
+
+const onelowercase = function (astr) {
+  let test = /[a-z]/
+  return field_validate(astr, test)
+}
+
+const onesymbol = function (astr) {
+  let test = /\W/
+  return field_validate(astr, test)
+}
+const onenumber = function (astr) {
+  let test = /[0-9]/
+  return field_validate(astr, test)
+}
+
+export default {
+  data() {
+    return {
+      form: {
+        data: {
+          email: '',
+          password: ''
+        },
+        submitStatus: null
+      },
+      account: {
+        title: 'Account',
+        subtitle: 'A little about you.'
+      },
+
+      headers: {
+          "Content-Type": 'application/json; charset=utf-8',
+          "Accept": "application/json; charset=utf-8",
+          "User-Agent": 'Mozilla/5.0',
+          "X-DreamFactory-Api-Key": process.env.DF_API_KEY,
+          "X-DreamFactory-Session-Token": null
+      },
+      options: {
+        rejectUnauthorized: false,
+        host: 'localhost',
+        port: 8080,
+        ssl_port: 443,
+        path: '/api/v2/adopt_a_thing_development/_func/add_user',
+        path_users: '/api/v2/adopt_a_thing_development/_table/users',
+        path_add_user: '/api/v2/<service>/_func/add_user',
+        method: 'POST',
+        responseType: 'json'
+      }
+    }
+  },
+  mixins: [validationMixin],
+  validations: {
+    form: {
+      data: {
+        email: {
+          required,
+          goodemail,
+          minLength: minLength(7)
+        },
+        password: {
+          required,
+          onecap,
+          onelowercase,
+          onesymbol,
+          onenumber,
+          minLength: minLength(8)
+        }
+      }
+    }
+  },
+  computed: {
+    store: function () {
+      return this.$store.state
+    },
+    guest_session_token: function () {
+      return this.$store.state.guest_session_token
+    },
+    authorized: function () {
+      if ( !this.$store.state.authenticated ){ return false }
+      return true
+    },
+    sessionOptions: function () {
+      /*
+      Objective:
+      Strategy:
+      */
+      return {
+        rejectUnauthorized: false,
+        dataType: 'json',
+        url: 'http://' + this.options.host + ':' + this.options.port + this.options.path,
+        port: this.options.ssl_port,
+        method: this.options.method,
+        data: { resource: [ this.form.data ] },
+        headers: this.headers,
+        data: {
+            "params": [
+              { "name":"email_","value":this.form.data.email },
+              { "name":"password_","value": this.form.data.password }
+            ]
+        },
+      }
+    }
+  },
+  methods: {
+    field_validate: function (astr, test) {
+      // let test = /[0-9]/
+      let rc = false
+      if(astr.length === 0){
+        rc = true // this is not correct but works...suppresses message
+      } else {
+        rc = test.test(astr)
+      }
+      return rc
+    },
+    submit() {
+      /*
+      Objective: Identify user to the application
+      Strategy: insert user credentials into users table
+      */
+
+      this.headers['X-DreamFactory-Session-Token']= this.guest_session_token
+
+      this.$v.$touch()
+      if (this.$v.$invalid) {
+        this.form.submitStatus = 'ERROR'
+      } else {
+
+        // do your submit logic here
+        this.form.submitStatus = 'PENDING'
+        this.$axios( this.sessionOptions )
+          .then((response) => {
+            let rc = response.data
+
+            switch ( rc ) {
+              case -23505:
+                this.form.submitStatus = 'DUPLICATE'
+                break
+              default:
+                this.form.submitStatus = 'OK'
+            }
+
+          })
+          .catch((response) => {
+            let resource = response.response.data.error.context.resource
+            let item = 0
+            this.form.submitStatus = 'ERROR'
+          })
+      }
+    }
+  }
+}
+</script>
+
+<style scoped>
+.band {
+  width: 100%;
+
+}
+</style>

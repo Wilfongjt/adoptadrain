@@ -23,11 +23,12 @@ const createStore = () => {
           state.user.name=undefined
           state.user.role=0
         } else {
-          state.user.name='Temp User Name'
+          state.user.name='guest'
           state.user.role=1
         }
       },
-      set_guest_session_token( guest_session_token ){
+      set_guest_session_token(state ,guest_session_token ){
+        //console.log('store set_guest_session_token')
         state.guest_session_token = guest_session_token
       }
     }

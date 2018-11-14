@@ -2,7 +2,7 @@
 Adopt a Drain
 A containerized version of adopt-a-drain (AAD).
 ## Why
-You may ask why rewrite an application that runs fine as Rudy appliction. 
+You may ask why rewrite an application that runs fine as Rudy appliction.
 * Node's dependencies are easier for me to resolve
 * Node is a little less fragile than ruby
 * Nuxtjs, Vuejs and Ruby are all pretty organized in terms of applicaton folders but Vuejs and Nuxtjs are both way more organized with regards to code.  
@@ -10,7 +10,7 @@ You may ask why rewrite an application that runs fine as Rudy appliction.
 
 ## Features
 
-* Docker-compose 
+* Docker-compose
 * Separate container for each service
 * A web site to demonstrate services
 * Nuxtjs
