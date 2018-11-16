@@ -3,24 +3,25 @@
 
     <!-- Banner / -->
     <h1 class="title">
-      {{ account.title }}
+      {{ page.title }}
     </h1>
 
     <h2 class="subtitle">
-      {{ account.subtitle }}
+      {{ page.subtitle }}
     </h2>
 
-    <div v-if="!authorized">
+    <div v-if="isAuthenticated">
+      <h2>Your Account</h2>
+      <br>
+      <div>{{ getUserName }}</div>
+    </div>
+
+    <div v-if="!isAuthenticated">
       <h2>Create Account</h2>
       <br>
     </div>
 
-    <div v-if="authorized">
-      <h2>Your Account</h2>
-      <br>
-    </div>
-
-    <form @submit.prevent="submit">
+    <form v-if="!isAuthenticated" @submit.prevent="submit">
       <div
         :class="{ 'form-group--error': $v.form.data.email.$error }"
         class="form-group">
@@ -98,7 +99,6 @@
 </template>
 
 <script>
-
 import axios from 'axios'
 import { validationMixin } from 'vuelidate'
 import { required, minLength, helpers } from 'vuelidate/lib/validators'
@@ -112,22 +112,18 @@ const field_validate = function (astr, test) {
   }
   return rc
 }
-
 const goodemail = function (astr) {
   let email_regex = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/
   return field_validate(astr, email_regex)
 }
-
 const onecap = function (astr) {
   let test = /[A-Z]/
   return field_validate(astr, test)
 }
-
 const onelowercase = function (astr) {
   let test = /[a-z]/
   return field_validate(astr, test)
 }
-
 const onesymbol = function (astr) {
   let test = /\W/
   return field_validate(astr, test)
@@ -136,7 +132,6 @@ const onenumber = function (astr) {
   let test = /[0-9]/
   return field_validate(astr, test)
 }
-
 export default {
   data() {
     return {
@@ -147,11 +142,10 @@ export default {
         },
         submitStatus: null
       },
-      account: {
+      page: {
         title: 'Account',
         subtitle: 'A little about you.'
       },
-
       headers: {
           "Content-Type": 'application/json; charset=utf-8',
           "Accept": "application/json; charset=utf-8",
@@ -199,9 +193,13 @@ export default {
     guest_session_token: function () {
       return this.$store.state.guest_session_token
     },
-    authorized: function () {
-      if ( !this.$store.state.authenticated ){ return false }
-      return true
+    isAuthenticated: function () {
+      //if ( !this.$store.state.authenticated ){ return false }
+      //return true
+      return this.$store.getters.isAuthenticated
+    },
+    getUserName: function () {
+      return this.$store.getters.getUserName
     },
     sessionOptions: function () {
       /*
@@ -220,7 +218,8 @@ export default {
             "params": [
               { "name":"email_","value":this.form.data.email },
               { "name":"password_","value": this.form.data.password }
-            ]
+            ],
+            "returns": "string"
         },
       }
     }
@@ -241,30 +240,34 @@ export default {
       Objective: Identify user to the application
       Strategy: insert user credentials into users table
       */
-
       this.headers['X-DreamFactory-Session-Token']= this.guest_session_token
-
       this.$v.$touch()
       if (this.$v.$invalid) {
         this.form.submitStatus = 'ERROR'
       } else {
-
         // do your submit logic here
         this.form.submitStatus = 'PENDING'
         this.$axios( this.sessionOptions )
           .then((response) => {
-            let rc = response.data
-
-            switch ( rc ) {
+            console.log('A')
+            let rc = JSON.parse(response.data)
+            console.log('B')
+            switch ( rc.id ) {
               case -23505:
+              console.log('C')
                 this.form.submitStatus = 'DUPLICATE'
                 break
               default:
+              console.log('D')
                 this.form.submitStatus = 'OK'
+                console.log('E')
+                this.$store.commit('set_user', rc)
+                console.log('F')
             }
-
+            console.log('G')
           })
           .catch((response) => {
+            console.log("page submit err2")
             let resource = response.response.data.error.context.resource
             let item = 0
             this.form.submitStatus = 'ERROR'
@@ -278,6 +281,5 @@ export default {
 <style scoped>
 .band {
   width: 100%;
-
 }
 </style>

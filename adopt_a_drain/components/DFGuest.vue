@@ -12,18 +12,15 @@
 The DFGuest establishes a connection to dreamfactory
 * connect as guest to dreamfactory
 * this connection can be leveraged to create an account or login
-
 Objective: Provide least privileges access for a guest user
 Strategy: set variable to manage login state
-Requirement: setup a dreamfactory guest user i.e., guest@localhost.com 
+Requirement: setup a dreamfactory guest user i.e., guest@localhost.com
 Requirement: setup a GUEST_USER env variable
 Requirement: setup a GUEST_PW env variable
 Requirement:
 */
 import axios from 'axios'
-
 export default {
-
   data() {
     return {
       page: {
@@ -70,7 +67,6 @@ export default {
         method: this.options.method,
         data: this.payload,
         headers: this.headers
-
       }
     }
   },
@@ -86,7 +82,6 @@ export default {
       // this.options.method = 'POST'
       this.$store.commit('set_guest_session_token', null)
       this.page.feedback.push("Connecting...")
-
       this.$axios( this.guestSessionOptions )
         .then((response) => {
           let token = response.data.session_token
@@ -105,6 +100,5 @@ export default {
 <style scoped>
 .band {
   width: 100%;
-
 }
 </style>

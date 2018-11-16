@@ -9,7 +9,7 @@
 <script>
 // import MapAdopt from '@/components/MapAdopt.vue'
 import DrainAdoption from '@/components/DrainAdoption.vue'
-import Authenticate from '@/components/Authenticate.vue'
+import Authenticate from '@/components/DFSignIn.vue'
 export default {
   components: {
     DrainAdoption,

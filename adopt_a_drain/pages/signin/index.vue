@@ -7,7 +7,7 @@
 
 <script>
 
-import Authenticate from '@/components/Authenticate.vue'
+import Authenticate from '@/components/DFSignIn.vue'
 export default {
   components: {
     Authenticate

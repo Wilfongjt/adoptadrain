@@ -7,11 +7,11 @@
     <h2 class="subtitle">
       {{ authenticate.subtitle }}
     </h2>
-    <div v-if="authorized">
+    <div v-if="isAuthenticated">
       <h1>Sign Out</h1>
-      <button @click="$store.commit('set_authenticated', false)">Sign Out</button>
+      <button @click="$store.commit('set_user', false)">Sign Out</button>
     </div>
-    <div v-if="!authorized">
+    <div v-if="!isAuthenticated">
       <h1>Temporary Sign In</h1>
       <button @click="$store.commit('set_authenticated',true)">Sign In</button>
     </div>
@@ -29,15 +29,14 @@ export default {
   data() {
     return {
       authenticate: {
-        title: 'Authenticate',
+        title: 'xAuthenticate',
         subtitle: 'Because.'
       }
     }
   },
   computed: {
-    authorized: function () {
-      if ( !this.$store.state.authenticated ){ return false }
-      return true
+    isAuthenticated: function () {
+      return this.$store.getters.isAuthenticated
     }
   }
 }
