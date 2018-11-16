@@ -1,7 +1,15 @@
 # COMPONENTS
 
-**This directory is not required, you can delete it if you don't want to use it.**
 
-The components directory contains your Vue.js Components.
+## DFGuest
+* Use session_token to create a user account
+* establish a connection to dreamfactory
+* The guest user is used to get a session token
 
-_Nuxt.js doesn't supercharge these components._
+### Guest Privileges
+* allow write access to create an Account
+* allow read access to retrieve your user info
+
+### Environment Variables
+* set GUEST_USER in .env
+* set GUEST_PW in .env

@@ -104,6 +104,12 @@ html {
   word-spacing: 5px;
   padding-bottom: 15px;
 }
+.error {
+  font-weight: 200 ;
+  font-size: 12px;
+  color: #FF0000;
+  padding-bottom: 5px;
+}
 .links {
   padding-top: 15px;
 }

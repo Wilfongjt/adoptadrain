@@ -1,19 +1,19 @@
 <template>
   <section class="container">
     <!-- Banner / -->
-    <Account />
-
+    <DFGuest />
+    <DFAccount />
   </section>
 </template>
 
 <script>
+import DFGuest from '@/components/DFGuest.vue'
+import DFAccount from '@/components/DFAccount.vue'
 
-import Account from '@/components/Account.vue'
-// import Banner from "@/components/Banner.vue"
 export default {
   components: {
-    /* Banner, */
-    Account
+    DFGuest,
+    DFAccount
   },
   computed: {
     authorized: function () {

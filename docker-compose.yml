@@ -7,11 +7,14 @@ services:
       - "5432:5432"
     volumes:
       - "~/data_df/pgdata:/var/lib/postgresql/data"
-      - "./scripts/db/01.create.db.sql:/docker-entrypoint-initdb.d/01.create.db.sql"
+      - "./scripts/db/01.01.create.db.sql:/docker-entrypoint-initdb.d/01.01.create.db.sql"
+      - "./scripts/db/01.02.hashing.db.sql:/docker-entrypoint-initdb.d/01.02.hashing.db.sql"
       - "./scripts/db/02.create.table.users.sql:/docker-entrypoint-initdb.d/02.create.table.users.sql"
       - "./scripts/db/03.create.table.things.sql:/docker-entrypoint-initdb.d/03.create.table.things.sql"
       - "./scripts/db/04.create.table.reminders.sql:/docker-entrypoint-initdb.d/04.create.table.reminders.sql"
       - "./scripts/db/05.create.users.groups.sql:/docker-entrypoint-initdb.d/05.create.users.groups.sql"
+      - "./scripts/db/06.01.create.sp.add_user.sql:/docker-entrypoint-initdb.d/06.01.create.sp.add_user.sql"
+      - "./scripts/db/06.02.privileges.add_user.sql:/docker-entrypoint-initdb.d/06.02.privileges.add_user.sql"
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
   mariadb:
