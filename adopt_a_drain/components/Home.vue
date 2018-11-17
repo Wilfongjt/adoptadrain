@@ -1,7 +1,8 @@
 <template>
-  <div class="band">
+  <div class="band"  id="home">
     <!-- Banner / -->
     <h2 class="subtitle">
+      <!-- testing text -->
       Volunteer to keep street drain clear and clean.
     </h2>
   </div>

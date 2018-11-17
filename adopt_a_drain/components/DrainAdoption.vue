@@ -39,7 +39,6 @@
 
 <script>
 
-// import Banner from '@/components/Banner.vue'
 import {gmapApi} from '~/node_modules/vue2-google-maps/src/main'
 
 import World from '@/components/World.vue'

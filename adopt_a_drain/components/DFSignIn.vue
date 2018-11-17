@@ -64,7 +64,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+//import axios from 'axios'
 import { validationMixin } from 'vuelidate'
 import { required, minLength, helpers } from 'vuelidate/lib/validators'
 
@@ -90,7 +90,7 @@ export default {
         submitStatus: null
       },
       page: {
-        title: 'Authenticate',
+        title: 'Sign In',
         subtitle: 'Because.'
       }
     }
@@ -128,6 +128,7 @@ export default {
         /*
         sign in code goes here
         */
+
         this.form.submitStatus = 'OK'
       }
     }
