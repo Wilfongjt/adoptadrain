@@ -1,5 +1,5 @@
 <template>
-  <section class="section-map">
+  <section class="section-map" id="adopt">
     <Authenticate v-if="!authorized"/>
     <!-- MapAdopt v-if="authorized" / -->
     <DrainAdoption v-if="authorized" />
@@ -7,7 +7,6 @@
 </template>
 
 <script>
-// import MapAdopt from '@/components/MapAdopt.vue'
 import DrainAdoption from '@/components/DrainAdoption.vue'
 import Authenticate from '@/components/DFSignIn.vue'
 export default {

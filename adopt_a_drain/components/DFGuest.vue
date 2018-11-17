@@ -19,7 +19,7 @@ Requirement: setup a GUEST_USER env variable
 Requirement: setup a GUEST_PW env variable
 Requirement:
 */
-import axios from 'axios'
+// import axios from 'axios'
 export default {
   data() {
     return {
@@ -74,24 +74,27 @@ export default {
     this.authenticateSession()
   },
   methods: {
-    getGuestSessionUrl: function () {
-      return 'http://localhost:8080' + this.options.path
-    },
     authenticateSession: function () {
       // this.options.sessionToken = '<stub>'
       // this.options.method = 'POST'
       this.$store.commit('set_guest_session_token', null)
       this.page.feedback.push("Connecting...")
-      this.$axios( this.guestSessionOptions )
-        .then((response) => {
-          let token = response.data.session_token
-          this.$store.commit('set_guest_session_token', token)
-          this.page.feedback.push("Connected.")
-        })
-        .catch((response) => {
-          this.page.feedback.push("Error: " + JSON.stringify(response))
-          // console.log("DFGuest error" + JSON.stringify(response))
-        })
+      try{
+        this.$axios( this.guestSessionOptions )
+          .then((response) => {
+            let token = response.data.session_token
+            this.$store.commit('set_guest_session_token', token)
+            this.page.feedback.push("Connected.")
+          })
+          .catch((response) => {
+            this.page.feedback.push("Error: " + JSON.stringify(response))
+            console.log("DFGuest error" + JSON.stringify(response))
+          })
+      }catch(err){
+        // this happens during testing with ava... still looking for solution
+        console.error("used a try/catch to workaround")
+        console.error("authenticateSession: "+err)
+      }
     }
   }
 }

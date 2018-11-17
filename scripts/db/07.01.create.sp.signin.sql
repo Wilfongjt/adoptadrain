@@ -2,22 +2,16 @@
 
 CREATE OR REPLACE FUNCTION signin(email_ VARCHAR(256), password_ VARCHAR(50))
 RETURNS TEXT AS $$
-DECLARE rc as TEXT;
+DECLARE rc TEXT;
 BEGIN
- 
- 
+  rc = CONCAT('{"id": -1 "name": "', email_ , '"}');
   if exists(SELECT * FROM users WHERE email = lower(email_) AND
                           password = crypt(password_, password)) then
-    set rc := CONCAT('{"id": ' , last_id::VARCHAR(15), ', "name": "', email_ , '"}');
-  else 
-    set rc := CONCAT('{"id": -1 "name": "', email_ , '"}');
-  end if
+    rc = CONCAT('{"id": ' , last_id::VARCHAR(15), ', "name": "', email_ , '"}');
 
-  RETURN rc
+  end if;
 
-EXCEPTION
-  WHEN unique_violation THEN
-    RETURN CONCAT('{"id": -2, "name": "', email_ , '"}') ;
+  RETURN rc;
 
 END;
 $$ LANGUAGE plpgsql;

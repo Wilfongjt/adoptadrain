@@ -1,5 +1,5 @@
 <template>
-  <section class="container">
+  <section class="container" id="account">
     <!-- Banner / -->
     <DFGuest />
     <DFAccount />

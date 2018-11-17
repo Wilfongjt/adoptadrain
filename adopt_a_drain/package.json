@@ -4,16 +4,28 @@
   "description": "My superb Nuxt.js project",
   "author": "James",
   "private": true,
+  "ava": {
+    "require": [
+      "babel-register"
+    ]
+  },
+  "babel": {
+    "presets": [
+      "env"
+    ]
+  },
   "scripts": {
     "dev": "nuxt",
+    "test": "ava",
     "build": "nuxt build",
     "start": "nuxt start",
     "generate": "nuxt generate"
   },
   "dependencies": {
     "@nuxtjs/axios": "^5.0.0",
+    "acorn": "^6.0.0",
     "cross-env": "^5.2.0",
-    "eslint": "^4.0.0",
+    "eslint": "^4.7.1",
     "eslint-config-prettier": "^3.1.0",
     "npm": "^6.4.1",
     "nuxt": "^2.0.0",
@@ -22,7 +34,9 @@
   },
   "devDependencies": {
     "@nuxtjs/dotenv": "^1.3.0",
+    "ava": "^0.25.0",
     "dotenv": "^6.1.0",
+    "jsdom": "^13.0.0",
     "node-sass": "^4.9.4",
     "nodemon": "^1.11.0",
     "sass-loader": "^7.1.0",

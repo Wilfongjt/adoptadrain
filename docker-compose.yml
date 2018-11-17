@@ -15,6 +15,7 @@ services:
       - "./scripts/db/05.create.users.groups.sql:/docker-entrypoint-initdb.d/05.create.users.groups.sql"
       - "./scripts/db/06.01.create.sp.add_user.sql:/docker-entrypoint-initdb.d/06.01.create.sp.add_user.sql"
       - "./scripts/db/06.02.privileges.add_user.sql:/docker-entrypoint-initdb.d/06.02.privileges.add_user.sql"
+      - "./scripts/db/07.01.create.sp.signin.sql:/docker-entrypoint-initdb.d/07.01.create.sp.signin.sql"
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
   mariadb:
