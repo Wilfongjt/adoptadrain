@@ -1,4 +1,7 @@
 # Created by .ignore support plugin (hsz.mobi)
+## persistant data files
+files
+data_df
 ### Node template
 # Logs
 logs

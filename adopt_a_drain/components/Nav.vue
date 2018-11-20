@@ -3,7 +3,7 @@
     <ul>
       <li><nuxt-link to="/">Home</nuxt-link></li>
       <li><nuxt-link to="/adopt">Adopt</nuxt-link></li>
-      <li><nuxt-link to="/signin">{{ getSignInLabel }}</nuxt-link></li>
+      <li><nuxt-link to="/sign_in">{{ getSignInLabel }}</nuxt-link></li>
       <li><nuxt-link to="/account">{{ getUserName }}</nuxt-link></li>
     </ul>
   </nav>

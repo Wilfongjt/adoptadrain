@@ -43,7 +43,9 @@ module.exports = {
   { src: '~/plugins/axios'}
   */
   plugins: [
+    // { src: '~/plugins/axios.js'},
     { src: '~/plugins/vue2-google-maps.js' }
+
   ],
 
   /*

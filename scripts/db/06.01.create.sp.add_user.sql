@@ -7,7 +7,6 @@ BEGIN
  
   INSERT INTO users (email, encrypted_password) VALUES
     (email_, crypt(password_, gen_salt('bf', 8)))  RETURNING id INTO last_id;
-
   
   RETURN CONCAT('{"id": ' , last_id::VARCHAR(15), ', "name": "', email_ , '"}');
 
