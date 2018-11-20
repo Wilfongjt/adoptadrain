@@ -2,7 +2,7 @@
   <div class="band">
 
     <div v-for="item in page.feedback">{{ item }}</div>
-    <!-- div>{{ store.guest_session_token }}</div -->
+    <div>{{ store.guest_session_token }}</div>
 
   </div>
 </template>

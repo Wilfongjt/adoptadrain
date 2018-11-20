@@ -60,6 +60,9 @@
         v-if="form.submitStatus === 'PENDING'"
         class="typo__p">Sending...</p>
     </form>
+    <div>
+      guest session token: {{ guest_session_token }}
+    </div>
   </div>
 </template>
 
@@ -92,6 +95,22 @@ export default {
       page: {
         title: 'Sign In',
         subtitle: 'Because.'
+      },
+      headers: {
+          "Content-Type": 'application/json; charset=utf-8',
+          "Accept": "application/json; charset=utf-8",
+          "User-Agent": 'Mozilla/5.0',
+          "X-DreamFactory-Api-Key": process.env.DF_API_KEY,
+          "X-DreamFactory-Session-Token": null
+      },
+      options: {
+        rejectUnauthorized: false,
+        host: 'localhost',
+        port: 8080,
+        ssl_port: 443,
+        path: '/api/v2/adopt_a_thing_development/_func/sign_in',
+        method: 'POST',
+        responseType: 'json'
       }
     }
   },
@@ -100,24 +119,48 @@ export default {
     form: {
       data: {
         email: {
-          required,
-          minLength: minLength(7)
+          required
         },
         password: {
-          required,
-          minLength: minLength(8)
+          required
         }
       }
     }
   },
   computed: {
+    store: function () {
+      return this.$store.state
+    },
+    guest_session_token: function () {
+      return this.$store.state.guest_session_token
+    },
     isAuthenticated: function () {
       return this.$store.getters.isAuthenticated
+    },
+    sessionOptions: function () {
+
+      return {
+        rejectUnauthorized: false,
+        dataType: 'json',
+        url: 'http://' + this.options.host + ':' + this.options.port + this.options.path,
+        port: this.options.ssl_port,
+        method: this.options.method,
+        data: { resource: [ this.form.data ] },
+        headers: this.headers,
+        data: {
+            "params": [
+              { "name":"email_","value":this.form.data.email },
+              { "name":"password_","value": this.form.data.password }
+            ],
+            "returns": "string"
+        },
+      }
     }
   },
   methods: {
     submit(){
       console.log("login 1")
+      this.headers['X-DreamFactory-Session-Token']= this.guest_session_token
       this.$v.$touch()
       if (this.$v.$invalid) {
         console.log("login 1 error")
@@ -128,8 +171,41 @@ export default {
         /*
         sign in code goes here
         */
+        console.log('email: ' + this.form.data.email)
+        console.log('password: ' + this.form.data.password)
+        console.log('sessionOptions: ' + JSON.stringify(this.sessionOptions))
 
-        this.form.submitStatus = 'OK'
+        //this.form.submitStatus = 'OK'
+        // A
+        this.$axios( this.sessionOptions )
+          .then((response) => {
+            console.log('A')
+            let rc = JSON.parse(response.data)
+            console.log('B')
+            switch ( rc.id ) {
+              case -1:
+              console.log('C')
+                this.form.submitStatus = 'NOTFOUND'
+                break
+              default:
+              console.log('D')
+                this.form.submitStatus = 'OK'
+                console.log('E')
+                this.$store.commit('set_user', rc)
+                console.log('F')
+            }
+            console.log('G')
+          })
+          .catch((response) => {
+            console.log("page submit err2")
+            console.log("response: " + JSON.stringify(response))
+            // let resource = response.response.data.error.context.resource
+            let item = 0
+            this.form.submitStatus = 'ERROR'
+          })
+
+
+        // B
       }
     }
   }

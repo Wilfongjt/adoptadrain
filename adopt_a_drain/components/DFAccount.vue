@@ -159,8 +159,6 @@ export default {
         port: 8080,
         ssl_port: 443,
         path: '/api/v2/adopt_a_thing_development/_func/add_user',
-        path_users: '/api/v2/adopt_a_thing_development/_table/users',
-        path_add_user: '/api/v2/<service>/_func/add_user',
         method: 'POST',
         responseType: 'json'
       }
@@ -194,18 +192,13 @@ export default {
       return this.$store.state.guest_session_token
     },
     isAuthenticated: function () {
-      //if ( !this.$store.state.authenticated ){ return false }
-      //return true
       return this.$store.getters.isAuthenticated
     },
     getUserName: function () {
       return this.$store.getters.getUserName
     },
     sessionOptions: function () {
-      /*
-      Objective:
-      Strategy:
-      */
+
       return {
         rejectUnauthorized: false,
         dataType: 'json',
