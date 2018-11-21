@@ -94,10 +94,16 @@ test('Environment Variables', async t => {
   t.not(process.env.GOOGLE_MAPS_JAVASCRIPT_API_KEY, undefined)
 })
 
-test('axios guest test', function (t) {
+test('axios new account', function (t) {
   console.log('###########')
-  console.log('axios guest test')
+  console.log('axios new account')
   console.log('###########')
+  /*
+     new-account is dependent on the guest account
+     new-account uses a axios chain
+
+
+  */
 
   let form = {
       data: {
@@ -107,6 +113,7 @@ test('axios guest test', function (t) {
       submitStatus: null
     }
 
+  // get
   return axios( guest_options )
     .then((response) => {
       console.log('* guest Start docker-compose up before running this test')
@@ -143,14 +150,14 @@ test('axios guest test', function (t) {
 
       return axios( sessionOptions )
         .then((response) => {
+          //console.log('response: ' + JSON.stringify(response))
+          // t.not(response.data, undefined)
           let rc = JSON.parse(response.data)
-          switch ( rc.id ) {
-            case -23505:
-              form.submitStatus = 'DUPLICATE'
-              break
-            default:
-              form.submitStatus = 'OK'
-          }
+
+          t.not(rc.id, undefined)
+          t.not(rc.name, undefined)
+          t.true(rc.id > 0 || rc.id === -23505)
+
         })
         .catch((response) => {
           console.log("** new account failed.")
@@ -168,6 +175,94 @@ test('axios guest test', function (t) {
         t.true(1 === 2)
     })
 })
+
+
+
+test('axios sign-in', function (t) {
+  console.log('###########')
+  console.log('axios sign-in')
+  console.log('###########')
+  /*
+     new-account is dependent on the guest account
+     new-account uses a axios chain
+
+
+  */
+
+  let form = {
+      data: {
+        email: 'test@test.com',
+        password: 'aA1!aaaa'
+      },
+      submitStatus: null
+    }
+
+  // get
+  return axios( guest_options )
+    .then((response) => {
+      console.log('* guest Start docker-compose up before running this test')
+      console.log('* guest Needs a mockup for dreamfactory')
+      console.log("* guest response")
+
+      const data = response.data
+      // returns a sesssion token
+      var regex = /./;
+      t.true(regex.test(data.session_token))
+
+      headers['path']='/api/v2/adopt_a_thing_development/_func/sign_in'
+      headers['X-DreamFactory-Session-Token'] = data.session_token
+
+      let sessionOptions = {
+        rejectUnauthorized: false,
+        dataType: 'json',
+        url: 'http://' + process.env.DF_HOST
+        + ':'
+        + process.env.DF_PORT
+        + headers.path,
+        port: 433,
+        method: 'POST',
+        data: {
+            "resource": [ form.data ],
+            "params": [
+              { "name":"email_","value": form.data.email },
+              { "name":"password_","value": form.data.password }
+            ],
+            "returns": "string"
+        },
+        headers: headers
+      }
+
+      return axios( sessionOptions )
+        .then((response) => {
+          //console.log('response: ' + JSON.stringify(response))
+          // t.not(response.data, undefined)
+          let rc = JSON.parse(response.data)
+
+          t.not(rc.id, undefined)
+          t.not(rc.name, undefined)
+          t.true(rc.id > 0)
+          t.true(rc.name === form.data.email)
+
+        })
+        .catch((response) => {
+          console.log("** sign-in failed.")
+          console.log("** response: " + response )
+          //let resource = response.response.data.error.context.resource
+          let item = 0
+          form.submitStatus = 'ERROR'
+          t.true(1 === 2)
+        })
+    })
+    .catch((response) => {
+      // guest_session_token = null
+      console.log("** guest sign in failed")
+      console.log("* error response: " + response)
+        t.true(1 === 2)
+    })
+})
+
+
+
 
 // Close the Nuxt server
 test.after('Closing server', t => {

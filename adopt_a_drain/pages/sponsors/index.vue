@@ -1,7 +1,6 @@
 <template>
   <section class="container">
     <Sponsors />
-
   </section>
 </template>
 

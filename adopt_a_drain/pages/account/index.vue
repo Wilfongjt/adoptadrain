@@ -7,13 +7,11 @@
 </template>
 
 <script>
-// import Guest from '@/components/DFGuest.vue'
-// import Account from '@/components/DFAccount.vue'
+
 import Account from '@/components/DFAccountNew.vue'
 
 export default {
   components: {
-    // Guest,
     Account
   },
   computed: {
