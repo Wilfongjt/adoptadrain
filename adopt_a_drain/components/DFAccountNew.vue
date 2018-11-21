@@ -146,6 +146,10 @@ export default {
         title: 'Account',
         subtitle: 'A little about you.'
       },
+      payload: {
+        email: process.env.GUEST_USER,
+        password: process.env.GUEST_PW
+      },
       headers: {
           "Content-Type": 'application/json; charset=utf-8',
           "Accept": "application/json; charset=utf-8",
@@ -155,10 +159,10 @@ export default {
       },
       options: {
         rejectUnauthorized: false,
-        host: 'localhost',
-        port: 8080,
+        host: process.env.DF_HOST,
+        port: process.env.DF_PORT,
         ssl_port: 443,
-        path: '/api/v2/adopt_a_thing_development/_func/add_user',
+        path: 'reset based on use',
         method: 'POST',
         responseType: 'json'
       }
@@ -185,6 +189,7 @@ export default {
     }
   },
   computed: {
+
     store: function () {
       return this.$store.state
     },
@@ -197,17 +202,37 @@ export default {
     getUserName: function () {
       return this.$store.getters.getUserName
     },
-    sessionOptions: function () {
-
+    guestOptions: function () {
+      this.options.path = '/api/v2/user/session'
       return {
         rejectUnauthorized: false,
         dataType: 'json',
-        url: 'http://' + this.options.host + ':' + this.options.port + this.options.path,
+        url: 'http://'
+          + this.options.host
+          + ':'
+          + this.options.port
+          + this.options.path,
         port: this.options.ssl_port,
         method: this.options.method,
-        data: { resource: [ this.form.data ] },
+        data: this.payload,
+        headers: this.headers
+      }
+    },
+    newAccountOptions: function () {
+      this.options.path = '/api/v2/adopt_a_thing_development/_func/add_user'
+      return {
+        rejectUnauthorized: false,
+        dataType: 'json',
+        url: 'http://'
+          + this.options.host
+          + ':'
+          + this.options.port
+          + this.options.path,
+        port: this.options.ssl_port,
+        method: this.options.method,
         headers: this.headers,
         data: {
+            "resource": [ this.form.data ],
             "params": [
               { "name":"email_","value":this.form.data.email },
               { "name":"password_","value": this.form.data.password }
@@ -228,41 +253,38 @@ export default {
       }
       return rc
     },
-    submit() {
-      /*
-      Objective: Identify user to the application
-      Strategy: insert user credentials into users table
-      */
-      this.headers['X-DreamFactory-Session-Token']= this.guest_session_token
+    submit: function () {
+
       this.$v.$touch()
       if (this.$v.$invalid) {
         this.form.submitStatus = 'ERROR'
       } else {
         // do your submit logic here
         this.form.submitStatus = 'PENDING'
-        this.$axios( this.sessionOptions )
+
+        this.$axios( this.guestOptions )
           .then((response) => {
-            console.log('A')
-            let rc = JSON.parse(response.data)
-            console.log('B')
-            switch ( rc.id ) {
-              case -23505:
-              console.log('C')
-                this.form.submitStatus = 'DUPLICATE'
-                break
-              default:
-              console.log('D')
-                this.form.submitStatus = 'OK'
-                console.log('E')
-                this.$store.commit('set_user', rc)
-                console.log('F')
-            }
-            console.log('G')
+            this.headers['X-DreamFactory-Session-Token']=response.data.session_token
+
+            this.$axios( this.newAccountOptions )
+              .then((response) => {
+                let rc = JSON.parse(response.data)
+                switch ( rc.id ) {
+                  case -23505:
+                    this.form.submitStatus = 'DUPLICATE'
+                    break
+                  default:
+                    this.form.submitStatus = 'OK'
+                    this.$store.commit('set_user', rc)
+                }
+              })
+              .catch((response) => {
+                console.log("page submit err2")
+                this.form.submitStatus = 'ERROR'
+              })
           })
           .catch((response) => {
-            console.log("page submit err2")
-            let resource = response.response.data.error.context.resource
-            let item = 0
+            console.log("page submit err1")
             this.form.submitStatus = 'ERROR'
           })
       }
