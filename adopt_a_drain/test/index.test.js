@@ -72,6 +72,7 @@ test('Route /adopt exits and render HTML with CSS applied', async t => {
   const element = window.document.querySelector('#adopt')
   t.not(element, null)
 })
+
 test('Route /sign_in exits and render HTML with CSS applied', async t => {
   console.log('###########')
   console.log("/sign_in")
