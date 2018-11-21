@@ -14,7 +14,7 @@
     </div>
 
     <div v-if="!isAuthenticated">
-      <h1>Temporary Sign In</h1>
+      <h1>Sign In</h1>
     </div>
 
     <form v-if="!isAuthenticated" @submit.prevent="submit">
@@ -96,6 +96,10 @@ export default {
         title: 'Sign In',
         subtitle: 'Because.'
       },
+      payload: {
+        email: process.env.GUEST_USER,
+        password: process.env.GUEST_PW
+      },
       headers: {
           "Content-Type": 'application/json; charset=utf-8',
           "Accept": "application/json; charset=utf-8",
@@ -105,10 +109,10 @@ export default {
       },
       options: {
         rejectUnauthorized: false,
-        host: 'localhost',
-        port: 8080,
+        host: process.env.DF_HOST,
+        port: process.env.DF_PORT,
         ssl_port: 443,
-        path: '/api/v2/adopt_a_thing_development/_func/sign_in',
+        path: 'reset based on use',
         method: 'POST',
         responseType: 'json'
       }
@@ -137,17 +141,38 @@ export default {
     isAuthenticated: function () {
       return this.$store.getters.isAuthenticated
     },
-    sessionOptions: function () {
-
+    guestOptions: function () {
+      this.options.path = '/api/v2/user/session'
       return {
         rejectUnauthorized: false,
         dataType: 'json',
-        url: 'http://' + this.options.host + ':' + this.options.port + this.options.path,
+        url: 'http://'
+          + this.options.host
+          + ':'
+          + this.options.port
+          + this.options.path,
+        port: this.options.ssl_port,
+        method: this.options.method,
+        data: this.payload,
+        headers: this.headers
+      }
+    },
+    signInOptions: function () {
+      this.options.path = '/api/v2/adopt_a_thing_development/_func/sign_in'
+      return {
+        rejectUnauthorized: false,
+        dataType: 'json',
+        url: 'http://'
+          + this.options.host
+          + ':'
+          + this.options.port
+          + this.options.path,
         port: this.options.ssl_port,
         method: this.options.method,
         data: { resource: [ this.form.data ] },
         headers: this.headers,
         data: {
+            "resource": [ this.form.data ],
             "params": [
               { "name":"email_","value":this.form.data.email },
               { "name":"password_","value": this.form.data.password }
@@ -158,54 +183,51 @@ export default {
     }
   },
   methods: {
-    submit(){
-      console.log("login 1")
-      this.headers['X-DreamFactory-Session-Token']= this.guest_session_token
+    field_validate: function (astr, test) {
+      // let test = /[0-9]/
+      let rc = false
+      if(astr.length === 0){
+        rc = true // this is not correct but works...suppresses message
+      } else {
+        rc = test.test(astr)
+      }
+      return rc
+    },
+    submit: function(){
+
       this.$v.$touch()
       if (this.$v.$invalid) {
-        console.log("login 1 error")
         this.form.submitStatus = 'ERROR'
       } else {
-        console.log("login 2")
         this.form.submitStatus = 'PENDING'
-        /*
-        sign in code goes here
-        */
-        console.log('email: ' + this.form.data.email)
-        console.log('password: ' + this.form.data.password)
-        console.log('sessionOptions: ' + JSON.stringify(this.sessionOptions))
 
-        //this.form.submitStatus = 'OK'
-        // A
-        this.$axios( this.sessionOptions )
+        this.$axios( this.guestOptions )
           .then((response) => {
-            console.log('A')
-            let rc = JSON.parse(response.data)
-            console.log('B')
-            switch ( rc.id ) {
-              case -1:
-              console.log('C')
-                this.form.submitStatus = 'NOTFOUND'
-                break
-              default:
-              console.log('D')
-                this.form.submitStatus = 'OK'
-                console.log('E')
-                this.$store.commit('set_user', rc)
-                console.log('F')
-            }
-            console.log('G')
+            this.headers['X-DreamFactory-Session-Token']=response.data.session_token
+
+            this.$axios( this.signInOptions )
+              .then((response) => {
+                let rc = JSON.parse(response.data)
+                switch ( rc.id ) {
+                  case -1:
+                    this.form.submitStatus = 'NOTFOUND'
+                    break
+                  default:
+                    this.form.submitStatus = 'OK'
+                    this.$store.commit('set_user', rc)
+                }
+              })
+              .catch((response) => {
+                console.log("page submit err2")
+                console.log("response: " + response)
+                this.form.submitStatus = 'ERROR'
+              })
+
           })
           .catch((response) => {
-            console.log("page submit err2")
-            console.log("response: " + JSON.stringify(response))
-            // let resource = response.response.data.error.context.resource
-            let item = 0
+            console.log("page submit err1")
             this.form.submitStatus = 'ERROR'
           })
-
-
-        // B
       }
     }
   }

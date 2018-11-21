@@ -1,18 +1,19 @@
 <template>
   <section class="container" id="account">
-    
-    <Guest />
+
+    <!-- Guest /-->
     <Account />
   </section>
 </template>
 
 <script>
-import Guest from '@/components/DFGuest.vue'
-import Account from '@/components/DFAccount.vue'
+// import Guest from '@/components/DFGuest.vue'
+// import Account from '@/components/DFAccount.vue'
+import Account from '@/components/DFAccountNew.vue'
 
 export default {
   components: {
-    Guest,
+    // Guest,
     Account
   },
   computed: {
