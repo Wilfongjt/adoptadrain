@@ -71,6 +71,7 @@ module.exports = {
     ** You can extend webpack config here
     */
     extend(config, ctx) {
+
       if (!ctx.isClient) {
         // This instructs Webpack to include `vue2-google-maps`'s Vue files
         // for server-side rendering

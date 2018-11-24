@@ -1,6 +1,6 @@
 <template>
 
-  <div v-if="authorized">
+  <div v-if="authorized" >
     <!-- Banner / -->
     <h1 class="title">
       {{ adopt.title }}
@@ -12,9 +12,10 @@
 
     <GmapMap ref="mapRef"
       @dragend="doDragEnd()"
+      @zoom_changed="doZoomChange()"
       v-bind:center="adopt.center"
       v-bind:map-type-id="adopt.map_type_id"
-      v-bind:zoom=adopt.zoom
+      v-bind:zoom="adopt.zoom"
       style="height: 550px"
     >
       <GmapMarker
@@ -22,13 +23,11 @@
         :key="index"
         v-for="(m, index) in adopt.markers"
           :animation="m.animation"
-
           :position="m.position"
-
           :draggable="m.draggable"
           :clickable="m.clickable"
-
           @click="center=m.position"
+          :icon="{ url: require('assets/markers/tosewer.png')}"
       />
 
     </GmapMap>
@@ -43,44 +42,87 @@ import {gmapApi} from '~/node_modules/vue2-google-maps/src/main'
 
 import World from '@/components/World.vue'
 export default {
-  /* components: {
-    Banner
-  },
-  */
+
   data() {
     return {
       adopt: {
-        randy: 'X',
         title: 'Adoption',
         subtitle: 'Find a drain near you and adopt it.',
-          map_type_id: 'terrain',
-          center: { lat: 42.9634, lng: -85.6681 },
-          zoom: 16,
-          zoomMax: 10,
-          zoomMin: 18,
-          disableDoubleClickZoom: false,
-          keyboardShortcuts: false,
-          mapTypeControl: false,
-          panControl: false,
-          rotateControl: false,
-          scaleControl: false,
-          streetViewControl: true,
-          zoomControl: true,
+        map_type_id: 'terrain',
+        center: { lat: 42.9634, lng: -85.6681 },
+        zoom: 18,
+        zoomMax: 10,
+        zoomMin: 20,
+        disableDoubleClickZoom: false,
+        keyboardShortcuts: false,
+        mapTypeControl: false,
+        panControl: false,
+        rotateControl: false,
+        scaleControl: false,
+        streetViewControl: true,
+        zoomControl: true,
 
         markers: [],
         // map.getBounds() doesn't inialize in time to load this...had to hand code it
-        center_box: {"south":42.95463738503886,"west":-85.69627392349241,"north":42.971910162437084,"east":-85.63666451034544},
+        // unfortunately, this means app has to open at same place everytime
+        center_box:  { "south": 42.96229110492215, "west": -85.67236663627625, "north": 42.964450198718986, "east": -85.66582204627991 },
         dx: 0.0,
         dy: 0.0
-      }
+      },
+      marker_type: {
+         adopted: {
+           icon: "{ url: require('assets/markers/adopted.png')}"
+         },
+         available: {
+           icon: "{ url: require('assets/markers/tosewer.png')}"
+         },
+         adoptedbyyou: {
+           icon: "{ url: require('assets/markers/adoptedbyyou.png')}"
+         }
+      },
+      layers: [
+        {
+          name: "available",
+          viewtangle: {},
+          source: {
+            name: "data.world",
+            connector: {
+              query_tmpl: "select * from grb_drains where (dr_lon > %w and dr_lon < %e) and (dr_lat > %s and dr_lat < %n) %d"
+            }
+          }
+        },
+        {
+          name: "adopted",
+          viewtangle: {},
+          source: {
+            name: "dreamfactory",
+            connector: {
+
+            }
+          }
+        }
+      ]
     }
   },
   methods: {
-    boundary_box: function () {
-      return JSON.stringify(this.$refs.mapRef.$mapObject.getBounds())
-    },
-    loadDims () {
-      this.adopt.center_box = JSON.stringify(this.$refs.mapRef.$mapObject.getBounds())
+
+    doZoomChange() {
+      /*
+      Objective: load drains as zoom changes
+      Strategy: intercept the zoom_changed event to initiat doZoomChanged
+      */
+      console.log('doZoomChange')
+      this.adopt.center = this.$refs.mapRef.$mapObject.getCenter()
+
+      let json_ = JSON.stringify(this.$refs.mapRef.$mapObject.getBounds())
+      let tmp = JSON.parse(json_)
+
+      this.adopt.center_box.north = tmp.north
+      this.adopt.center_box.south  = tmp.south
+      this.adopt.center_box.west  = tmp.west
+      this.adopt.center_box.east  = tmp.east
+
+      this.loadLayers()
     },
     doDragEnd () {
       /*
@@ -88,92 +130,112 @@ export default {
       * Avoid downloading all drains at one time. Gives the illusion of a fast UI
       * Have data appear as user pans around screen
       Strategy: Use a boundary rectangle as a filter for download of drain
+      intercept the dragend event to initate doDragEnd function
       */
 
       this.adopt.center = this.$refs.mapRef.$mapObject.getCenter()
 
-      this.adopt.center_box.north = this.adopt.center.lat() + this.adopt.dy
-      this.adopt.center_box.south  = this.adopt.center.lat() - this.adopt.dy
-      this.adopt.center_box.west  = this.adopt.center.lng() - this.adopt.dx
-      this.adopt.center_box.east  = this.adopt.center.lng() + this.adopt.dx
+      let json_ = JSON.stringify(this.$refs.mapRef.$mapObject.getBounds())
+      let tmp = JSON.parse(json_)
 
-      this.loadDrains()
+      this.adopt.center_box.north = tmp.north
+      this.adopt.center_box.south  = tmp.south
+      this.adopt.center_box.west  = tmp.west
+      this.adopt.center_box.east  = tmp.east
+
+      this.loadLayers()
     },
-    /*addDrain: function (drain) {
 
-        Objective: add marker to list without duplcation
-        Strategy: check new drains against all drains in markers to prevent dups
-        improvement: do query with a NOT IN [] clause, check dataworld api
-
-
-      let fd = true
-      let drn_i = 0
-      for(drn_i in this.adopt.markers){
-        if(drain.id === this.adopt.markers[drn_i].id){
-           // mark drain for adding
-           fd = false
+    restify: function (lyr) {
+      /*
+        Objective: Keep all the rest call configurations in one spot for easy comparison
+        Strategy:
+        * Use a handler pattern
+        * Use a key value to indicate which service to call
+      */
+      console.log('restify')
+      let rest = {}
+      // DATA.WORLD
+      if(lyr.source.name === "data.world"){
+        // DATA.WORLD
+        let query_str = lyr.source.connector.query_tmpl
+          .replace('%w',this.adopt.center_box.west)
+          .replace('%e',this.adopt.center_box.east)
+          .replace('%n',this.adopt.center_box.north)
+          .replace('%s',this.adopt.center_box.south)
+          .replace('%d',this.getDownloadedDrains())
+        rest = {
+          method: 'post',
+          url: process.env.OPEN_SOURCE,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + process.env.DW_AUTH_TOKEN
+          },
+          data: { query: query_str, includeTableSchema: false }
         }
       }
-      if(fd){
-        // add drain
-        this.adopt.markers.push(drain)
+      if(lyr.source.name === 'dreamfactory'){
+        console.log('restify dreamfactory')
       }
-    },*/
+      return rest
+    },
+    responseHandler: function (lyr,response){
+      console.log('responseHandler: ' )
+      ///////
+      /// DATA.WORLD
+      ////////
+      if(lyr.source.name === 'data.world'){
+        // console.log('responseHandler data.world')
 
-    loadDrains: function () {
-      /*
-      Objective: Keep from downloading all the drains at one time
-      Strategy:
-      * Limit the number of drains with a rectangle in middle of map screen
-      * only download when panning
-      * cache already downloaded drains
-      */
-      let resp = ''
+        let dr = {}
+        var iconBase = this.marker_url //'https://maps.google.com/mapfiles/kml/shapes/';
+        //console.log('XXXXX Data Found')
+        for( dr in response.data) {
+          let lt = response.data[dr].dr_lat
+          let ln = response.data[dr].dr_lon
+          let sync_id = response.data[dr].dr_sync_id
 
-      let query_str = "select * from grb_drains where (dr_lon > %w and dr_lon < %e) and (dr_lat > %s and dr_lat < %n) %d"
-        .replace('%w',this.adopt.center_box.west)
-        .replace('%e',this.adopt.center_box.east)
-        .replace('%n',this.adopt.center_box.north)
-        .replace('%s',this.adopt.center_box.south)
-        .replace('%d',this.getDownloadedDrains())
-
-      console.log('q= ' + query_str)
-
-      this.$axios({
-        method: 'post',
-        url: process.env.OPEN_SOURCE,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + process.env.DW_AUTH_TOKEN
-        },
-        data: { query: query_str, includeTableSchema: false }
-        //data: { query: "select * from grb_drains LIMIT 10", includeTableSchema: false }
-      })
+          let marker = new google.maps.Marker({
+            id: sync_id,
+            position: { lat: lt, lng: ln },
+            draggable: false,
+            clickable: true,
+            animation: google.maps.Animation.DROP,
+            icon: this.marker_type.adopted.icon
+            //shadow: '~/assets/markers/shadow.png'
+          })
+          this.adopt.markers.push(marker)
+        }
+      }
+      if(lyr.source.name === 'dreamfactory'){
+        console.log('responseHandler dreamfactory')
+      }
+    },
+    loadLayer: function (lyr) {
+      console.log('loadLayer')
+      if(lyr.viewtangle){ // devloper configured a center view port
+        // set a view port for the query
+        lyr.viewtangle = JSON.parse(JSON.stringify(this.adopt.center_box))
+      }
+      this.$axios(this.restify(lyr))
         .then((response) => {
-          let dr = {}
-          for( dr in response.data) {
-            let lt = response.data[dr].dr_lat
-            let ln = response.data[dr].dr_lon
-            let sync_id = response.data[dr].dr_sync_id
-            let marker = new google.maps.Marker({
-              id: sync_id,
-
-              position: { lat: lt, lng: ln },
-
-              draggable: false,
-              clickable: true,
-              animation: google.maps.Animation.DROP
-              /*icon: '~/assets/markers/tosewer.png',*/
-              //shadow: '~/assets/markers/shadow.png'
-            })
-            this.adopt.markers.push(marker)
-            // this.addDrain(marker)
-            //this.addDrain({ id: sync_id, position: { lat: lt, lng: ln } })
-          }
+          this.responseHandler(lyr, response)
         })
-        .catch((response) => {console.log("error" + JSON.stringify(response))})
+        .catch((response) => {
+          console.log("error" + JSON.stringify(response))
+        })
+    },
+    loadLayers: function () {
+      console.log('loadLayers')
+
+      let lyrNo = {}
+      for(lyrNo in this.layers){
+        // get the data
+        this.loadLayer(this.layers[lyrNo])
+      }
     },
     getDownloadedDrains: function () {
+      console.log('getDownloadedDrains')
       let lst = ''
       let i = 0
       for(i in this.adopt.markers){
@@ -188,28 +250,47 @@ export default {
       return "and dr_sync_id NOT IN (%d)".replace("%d", lst)
     }
   },
+
   computed: {
     authorized: function () {
       if ( !this.$store.state.authenticated ){ return false }
       return true
     }
   },
-  mounted () {
 
+  mounted () {
+    console.log('mounting 1')
     // At this point, the child GmapMap has been mounted, but
     // its map has not been initialized.
     // Therefore we need to write mapRef.$mapPromise.then(() => ...)
-    this.$refs.mapRef.$mapPromise.then((map) => {
-      map.panTo({ lat: 42.9634, lng: -85.6681 })
-      this.adopt.randy = 'Y'
-      this.adopt.center = map.getCenter()
+    this.$refs.mapRef.$mapPromise
+    .then((map) => {
+      this.$refs.mapRef.$mapObject.panTo({ lat: 42.9634, lng: -85.6681 })
+
+      this.adopt.center = this.$refs.mapRef.$mapObject.getCenter()
+
+      let json_ = JSON.stringify(this.$refs.mapRef.$mapObject.getBounds())
+
+      if(json_ === undefined){  // still waiting for google to init
+        json_ = this.adopt.center_box
+      } else {
+
+        let tmp = JSON.parse(json_)
+
+        this.adopt.center_box.north = tmp.north
+        this.adopt.center_box.south  = tmp.south
+        this.adopt.center_box.west  = tmp.west
+        this.adopt.center_box.east  = tmp.east
+
+      }
+
+      this.loadLayers()
     })
-
-    this.adopt.center_box = {"south":42.96232044414465,"west":-85.67127841768263,"north":42.96447953691185,"east":-85.66492158231733}
-    this.adopt.dy = Math.abs(this.adopt.center_box.north - this.adopt.center_box.south) / 3.0
-    this.adopt.dx = Math.abs(this.adopt.center_box.west - this.adopt.center_box.east) / 3.0
-
-    this.loadDrains()
+    .catch((map) => {
+      console.log("map error: " + JSON.stringify(map))
+    })
+    // this.loadDrains()
+    // this.loadLayers()
   }
 }
 </script>
