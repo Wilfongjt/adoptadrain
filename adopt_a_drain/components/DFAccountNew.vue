@@ -219,7 +219,7 @@ export default {
       }
     },
     newAccountOptions: function () {
-      this.options.path = '/api/v2/adopt_a_thing_development/_func/add_user'
+      this.options.path = '/api/v2/adopt_a_drain/_func/add_user'
       return {
         rejectUnauthorized: false,
         dataType: 'json',

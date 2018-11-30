@@ -158,7 +158,7 @@ export default {
       }
     },
     signInOptions: function () {
-      this.options.path = '/api/v2/adopt_a_thing_development/_func/sign_in'
+      this.options.path = '/api/v2/adopt_a_drain/_func/sign_in'
       return {
         rejectUnauthorized: false,
         dataType: 'json',
@@ -169,6 +169,7 @@ export default {
           + this.options.path,
         port: this.options.ssl_port,
         method: this.options.method,
+        // WTF is this extra data?
         data: { resource: [ this.form.data ] },
         headers: this.headers,
         data: {
@@ -193,6 +194,7 @@ export default {
       }
       return rc
     },
+
     submit: function(){
 
       this.$v.$touch()

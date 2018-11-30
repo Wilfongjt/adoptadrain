@@ -7,7 +7,7 @@
 */
 
 
-CREATE DATABASE adopt_a_thing_development
+CREATE DATABASE adopt_a_drain
         -- [ [ WITH ] [ OWNER [=] user_name ]
         --       [ TEMPLATE [=] template ]
         --       [ ENCODING [=] encoding ]

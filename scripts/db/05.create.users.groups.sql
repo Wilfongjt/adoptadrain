@@ -1,4 +1,4 @@
-\c dbname=adopt_a_thing_development
+\c dbname=adopt_a_drain
 
 Create USER df_guest_user;
 
@@ -9,6 +9,7 @@ Grant INSERT ON users TO GROUP df_guests;
 ALTER GROUP df_guests ADD USER df_guest_user;
 
 --
+
 Create USER df_edit_user;
 
 create group df_editors;

@@ -1,4 +1,4 @@
-\c dbname=adopt_a_thing_development
+\c dbname=adopt_a_drain
 
 CREATE OR REPLACE FUNCTION sign_in(email_ VARCHAR(256), password_ VARCHAR(50))
 RETURNS TEXT AS $$
