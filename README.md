@@ -72,3 +72,22 @@ docker-compose up
 # stop docker-compose
 # docker-compose down
 ```
+
+## Dreamfactory 
+Docker-compose is configured to create a folder to store persistant components (~/data_df)
+Docker-compose installs persistent copies of apache, php, and dreamfactory in ~/data_df .
+Docker-compose is configured to install persistant mariadb, mongodb, and redis in ~/data_df.
+ 
+ ### Initialization
+ Once 'docker-compose up' is successfully run, open http://localhost:8080
+* Create a System Admin User
+
+### Setup Adopt-a-Drain
+https://github.com/dreamfactorysoftware/javascript-sdk 
+* set up CORS 
+* Create a default role for new users and enable Open Registration
+* Roles: Create Guest Role
+* Services: user: Configure Open Registration 
+    
+    
+

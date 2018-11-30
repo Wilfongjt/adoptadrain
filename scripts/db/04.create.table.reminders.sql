@@ -1,4 +1,4 @@
-\c dbname=adopt_a_thing_development
+\c dbname=adopt_a_drain
 
 CREATE TABLE IF NOT EXISTS reminders (
     id SERIAL PRIMARY KEY,

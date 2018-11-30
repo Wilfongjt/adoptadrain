@@ -83,21 +83,26 @@ export default {
       layers: [
         {
           name: "available",
+          description: "all drains within the screen i.e. viewtangle",
           viewtangle: {},
           source: {
             name: "data.world",
             connector: {
+              service_service: process.env.OPEN_SOURCE,
               query_tmpl: "select * from grb_drains where (dr_lon > %w and dr_lon < %e) and (dr_lat > %s and dr_lat < %n) %d"
             }
           }
         },
         {
           name: "adopted",
+          description: "all adopted and adopted by you drains within the viewtangle",
           viewtangle: {},
           source: {
             name: "dreamfactory",
             connector: {
-
+              service_url: process.env.DF_SOURCE + "/api/v2/adopt_a_drain/_func/",
+              // query_tmpl: "select * from things where (user_id isNot NULL and user_id > 0) and (lon > %w and lon < %e) and (lat > %s and lat < %n) %d"
+              func_tmpl: "get_adopted(%w, %e, %n, %s, %v)"
             }
           }
         }
@@ -155,18 +160,19 @@ export default {
       */
       console.log('restify')
       let rest = {}
+      // All services
+      // exclude drains already downloaded
+      let query_str = lyr.source.connector.query_tmpl
+        .replace('%w',this.adopt.center_box.west)
+        .replace('%e',this.adopt.center_box.east)
+        .replace('%n',this.adopt.center_box.north)
+        .replace('%s',this.adopt.center_box.south)
+        .replace('%d',this.getDownloadedDrains())
       // DATA.WORLD
       if(lyr.source.name === "data.world"){
-        // DATA.WORLD
-        let query_str = lyr.source.connector.query_tmpl
-          .replace('%w',this.adopt.center_box.west)
-          .replace('%e',this.adopt.center_box.east)
-          .replace('%n',this.adopt.center_box.north)
-          .replace('%s',this.adopt.center_box.south)
-          .replace('%d',this.getDownloadedDrains())
         rest = {
           method: 'post',
-          url: process.env.OPEN_SOURCE,
+          url: lyr.service_url,
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + process.env.DW_AUTH_TOKEN
@@ -174,19 +180,42 @@ export default {
           data: { query: query_str, includeTableSchema: false }
         }
       }
+      // dreamfactory load things
       if(lyr.source.name === 'dreamfactory'){
         console.log('restify dreamfactory')
+        // exclude drains already downloaded
+        rest = {
+          method: 'post',
+          rejectUnauthorized: false,
+          dataType: 'json',
+          url: lyr.service_url,
+          port: 433,
+          headers: {
+            "Content-Type": 'application/json; charset=utf-8',
+            "Accept": "application/json; charset=utf-8",
+            "User-Agent": 'Mozilla/5.0',
+            "X-DreamFactory-Api-Key": process.env.DF_API_KEY
+          },
+          data: {}
+
+        }
       }
       return rest
     },
     responseHandler: function (lyr,response){
+      /*
+      Objective:
+      * Keep all response code in same place for easy comparison
+      Strategy:
+      * Use a handler pattern
+      * Use a key value to indicate which response to process
+      */
       console.log('responseHandler: ' )
       ///////
       /// DATA.WORLD
       ////////
       if(lyr.source.name === 'data.world'){
         // console.log('responseHandler data.world')
-
         let dr = {}
         var iconBase = this.marker_url //'https://maps.google.com/mapfiles/kml/shapes/';
         //console.log('XXXXX Data Found')

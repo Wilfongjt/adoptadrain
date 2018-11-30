@@ -1,4 +1,4 @@
-\c dbname=adopt_a_thing_development
+\c dbname=adopt_a_drain
 
 /*
  Configure Hashing

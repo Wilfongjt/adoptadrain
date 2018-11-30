@@ -1,6 +1,5 @@
-version: '3'
+version: '2'
 services:
-
   db:
     image: library/postgres:9.6
     container_name: aad_database
@@ -26,10 +25,10 @@ services:
       - ~/data_df/mariadb-persistence:/bitnami
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
-  # mongodb:
-  #  image: 'bitnami/mongodb:latest'
-  #  volumes:
-  #    - '~/data_df/mongodb-persistence:/bitnami'
+  mongodb:
+    image: 'bitnami/mongodb:latest'
+    volumes:
+      - '~/data_df/mongodb-persistence:/bitnami'
   redis:
     image: 'bitnami/redis:latest'
     environment:
@@ -40,7 +39,7 @@ services:
     image: dreamfactorysoftware/df-docker:latest
     depends_on:
       - mariadb
-      # - mongodb
+      - mongodb
       - redis
       - db
     ports:
@@ -62,8 +61,8 @@ services:
 volumes:
   mariadb_data:
     driver: local
-  # mongodb_data:
-  #  driver: local
+  mongodb_data:
+    driver: local
   redis_data:
     driver: local
   dreamfactory_data:
