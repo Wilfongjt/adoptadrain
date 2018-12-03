@@ -34,7 +34,7 @@ let layers = [
   {
     name: "guest",
     description: "",
-    type: "guest-signin",
+    type: "user-session",
     data_tmpl: {
       "email": "%e",
       "password": "%p"
@@ -138,7 +138,7 @@ let requestify = function( lyr, sessionToken ) {
       }
 
        // GUEST SIGNIN
-      if(lyr.type==='guest-signin'){
+      if(lyr.type==='user-session'){
         df_request.url=lyr.source.connector.url_tmpl
           .replace('%h',process.env.DF_HOST)
           .replace('%p',process.env.DF_PORT)

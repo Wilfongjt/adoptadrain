@@ -44,7 +44,8 @@ module.exports = {
   */
   plugins: [
     // { src: '~/plugins/axios.js'},
-    { src: '~/plugins/vue2-google-maps.js' }
+    { src: '~/plugins/vue2-google-maps.js' },
+    { src: '~/plugins/getlayertemplate.js' }
 
   ],
 
