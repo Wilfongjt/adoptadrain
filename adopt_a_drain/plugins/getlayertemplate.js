@@ -1,9 +1,10 @@
-import Vue from 'vue'
+/*import Vue from 'vue'
 
 Vue.prototype.$getLayerTemplate = (lyrName ) => {
   let lyr = {}
   let layers = [
     {
+      // dreamfactory guest session
       name: "guest",
       description: "abc",
       type: "user-session",
@@ -19,10 +20,10 @@ Vue.prototype.$getLayerTemplate = (lyrName ) => {
       }
     },
     {
-      //name: "df-new-user",
-      name: "system-user",
+      // dreamfactory user
+      name: "new-system-user",
       description: "",
-      type: "new-user",
+      type: "system-user",
       source: {
         type: "dreamfactory",
         connector: {
@@ -53,3 +54,4 @@ Vue.prototype.$getLayerTemplate = (lyrName ) => {
   }
   return lyr
 }
+*/
