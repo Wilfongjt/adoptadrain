@@ -39,10 +39,10 @@
 <script>
 
 import {gmapApi} from '~/node_modules/vue2-google-maps/src/main'
-
 import World from '@/components/World.vue'
-export default {
+import { restTemplates } from './mixins/rest-templates.js'
 
+export default {
   data() {
     return {
       adopt: {
@@ -69,7 +69,8 @@ export default {
         dx: 0.0,
         dy: 0.0
       },
-      marker_type: {
+      // think about attaching these to layers
+      marker_type: { // this.marker_type.available.icon
          adopted: {
            icon: "{ url: require('assets/markers/adopted.png')}"
          },
@@ -80,35 +81,10 @@ export default {
            icon: "{ url: require('assets/markers/adoptedbyyou.png')}"
          }
       },
-      layers: [
-        {
-          name: "available",
-          description: "all drains within the screen i.e. viewtangle",
-          viewtangle: {},
-          source: {
-            name: "data.world",
-            connector: {
-              service_service: process.env.OPEN_SOURCE,
-              query_tmpl: "select * from grb_drains where (dr_lon > %w and dr_lon < %e) and (dr_lat > %s and dr_lat < %n) %d"
-            }
-          }
-        },
-        {
-          name: "adopted",
-          description: "all adopted and adopted by you drains within the viewtangle",
-          viewtangle: {},
-          source: {
-            name: "dreamfactory",
-            connector: {
-              service_url: process.env.DF_SOURCE + "/api/v2/adopt_a_drain/_func/",
-              // query_tmpl: "select * from things where (user_id isNot NULL and user_id > 0) and (lon > %w and lon < %e) and (lat > %s and lat < %n) %d"
-              func_tmpl: "get_adopted(%w, %e, %n, %s, %v)"
-            }
-          }
-        }
-      ]
+      
     }
   },
+  mixins: [restTemplates],
   methods: {
 
     doZoomChange() {
@@ -116,7 +92,7 @@ export default {
       Objective: load drains as zoom changes
       Strategy: intercept the zoom_changed event to initiat doZoomChanged
       */
-      console.log('doZoomChange')
+      console.log('doZoomChange 1')
       this.adopt.center = this.$refs.mapRef.$mapObject.getCenter()
 
       let json_ = JSON.stringify(this.$refs.mapRef.$mapObject.getBounds())
@@ -127,9 +103,14 @@ export default {
       this.adopt.center_box.west  = tmp.west
       this.adopt.center_box.east  = tmp.east
 
-      this.loadLayers()
+      try {
+        this.loadLayers()
+      } catch(err){
+        console.error('Error doZoomChange ' + err)
+      }
     },
     doDragEnd () {
+      console.log('doDragEnd 1')
       /*
       Objective:
       * Avoid downloading all drains at one time. Gives the illusion of a fast UI
@@ -148,60 +129,13 @@ export default {
       this.adopt.center_box.west  = tmp.west
       this.adopt.center_box.east  = tmp.east
 
-      this.loadLayers()
+      try {
+        this.loadLayers()
+      } catch(err){
+        console.error('Error doDragEnd ' + err)
+      }
     },
 
-    restify: function (lyr) {
-      /*
-        Objective: Keep all the rest call configurations in one spot for easy comparison
-        Strategy:
-        * Use a handler pattern
-        * Use a key value to indicate which service to call
-      */
-      console.log('restify')
-      let rest = {}
-      // All services
-      // exclude drains already downloaded
-      let query_str = lyr.source.connector.query_tmpl
-        .replace('%w',this.adopt.center_box.west)
-        .replace('%e',this.adopt.center_box.east)
-        .replace('%n',this.adopt.center_box.north)
-        .replace('%s',this.adopt.center_box.south)
-        .replace('%d',this.getDownloadedDrains())
-      // DATA.WORLD
-      if(lyr.source.name === "data.world"){
-        rest = {
-          method: 'post',
-          url: lyr.service_url,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + process.env.DW_AUTH_TOKEN
-          },
-          data: { query: query_str, includeTableSchema: false }
-        }
-      }
-      // dreamfactory load things
-      if(lyr.source.name === 'dreamfactory'){
-        console.log('restify dreamfactory')
-        // exclude drains already downloaded
-        rest = {
-          method: 'post',
-          rejectUnauthorized: false,
-          dataType: 'json',
-          url: lyr.service_url,
-          port: 433,
-          headers: {
-            "Content-Type": 'application/json; charset=utf-8',
-            "Accept": "application/json; charset=utf-8",
-            "User-Agent": 'Mozilla/5.0',
-            "X-DreamFactory-Api-Key": process.env.DF_API_KEY
-          },
-          data: {}
-
-        }
-      }
-      return rest
-    },
     responseHandler: function (lyr,response){
       /*
       Objective:
@@ -210,20 +144,22 @@ export default {
       * Use a handler pattern
       * Use a key value to indicate which response to process
       */
-      console.log('responseHandler: ' )
+      //console.log('responseHandler: 1' )
       ///////
       /// DATA.WORLD
       ////////
       if(lyr.source.name === 'data.world'){
-        // console.log('responseHandler data.world')
+        //console.log('responseHandler: 2')
         let dr = {}
-        var iconBase = this.marker_url //'https://maps.google.com/mapfiles/kml/shapes/';
-        //console.log('XXXXX Data Found')
+
         for( dr in response.data) {
+          //if(dr > 4){break}
+          //console.log('responseHandler: 4')
+          //console.log('dr: ' + response.data[dr])
           let lt = response.data[dr].dr_lat
           let ln = response.data[dr].dr_lon
           let sync_id = response.data[dr].dr_sync_id
-
+          //console.log('responseHandler: 5')
           let marker = new google.maps.Marker({
             id: sync_id,
             position: { lat: lt, lng: ln },
@@ -234,61 +170,96 @@ export default {
             //shadow: '~/assets/markers/shadow.png'
           })
           this.adopt.markers.push(marker)
+          //console.log('responseHandler: 6')
         }
+        //console.log('responseHandler: 7')
       }
       if(lyr.source.name === 'dreamfactory'){
-        console.log('responseHandler dreamfactory')
+        console.log('responseHandler: 2 ')
       }
+      //console.log('responseHandler: out' )
     },
     loadLayer: function (lyr) {
-      console.log('loadLayer')
+
+      //console.log('loadLayer: 1')
+      //console.log('loadLayer: 1 ' + lyr)
       if(lyr.viewtangle){ // devloper configured a center view port
+        //console.log('loadLayer: 1.1 viewtangle')
         // set a view port for the query
         lyr.viewtangle = JSON.parse(JSON.stringify(this.adopt.center_box))
+        //console.log('loadLayer: 1.2')
+      }else{
+        throw Error('loadLayer unable to find viewtangle')
+        //console.log('loadLayer: no viewtangle')
       }
-      this.$axios(this.restify(lyr))
+      //console.log('loadLayer 2')
+
+      let loadlayer_request = this.requestify(lyr)
+      this.$axios(loadlayer_request)
         .then((response) => {
+
           this.responseHandler(lyr, response)
+
         })
         .catch((response) => {
-          console.log("error" + JSON.stringify(response))
+          console.log("loadLayer error" + JSON.stringify(response))
         })
+
     },
     loadLayers: function () {
-      console.log('loadLayers')
+      //console.log('loadLayers 1')
 
       let lyrNo = {}
       for(lyrNo in this.layers){
+
+        if(lyrNo > 0){break}
+
+        ////console.log('loadLayers 2')
+        if(!this.layers[lyrNo]){
+          // console.log('this.layers[lyrNo]: ' +this.layers[lyrNo])
+          // console.log('layer undefined')
+          throw new Error('loadLayers found undefined layer at index ' + lyrNo)
+        }
         // get the data
         this.loadLayer(this.layers[lyrNo])
       }
+      //console.log('loadLayers: out')
     },
     getDownloadedDrains: function () {
-      console.log('getDownloadedDrains')
+      //console.log('getDownloadedDrains 1')
       let lst = ''
       let i = 0
       for(i in this.adopt.markers){
         if( lst.length > 0){
           lst += ", "
         }
-        lst += '"' + this.adopt.markers[i].id + '"'
+        lst += "'" + this.adopt.markers[i].id + "'"
       }
       if(lst.length == 0 ){
+        //console.log('getDownloadedDrains early out')
         return " "
       }
+      //console.log('getDownloadedDrains: 2' + "and dr_sync_id NOT IN (%d)".replace("%d", lst))
+      //console.log('getDownloadedDrains out')
       return "and dr_sync_id NOT IN (%d)".replace("%d", lst)
     }
+
   },
 
   computed: {
     authorized: function () {
       if ( !this.$store.state.authenticated ){ return false }
       return true
+    },
+    layers: function () { return [ // map layers... think about adding extra layer attributes
+        this.getRestTemplate('available'),
+        this.getRestTemplate('adopted')
+      ]
     }
   },
 
   mounted () {
-    console.log('mounting 1')
+    //console.log('mounting 1')
     // At this point, the child GmapMap has been mounted, but
     // its map has not been initialized.
     // Therefore we need to write mapRef.$mapPromise.then(() => ...)
@@ -312,14 +283,19 @@ export default {
         this.adopt.center_box.east  = tmp.east
 
       }
-
-      this.loadLayers()
+      try {
+        //console.log('mounted this.getRestTemplate(\'available\')' + JSON.stringify(this.getRestTemplate('available')))
+        this.loadLayers()
+      } catch(err){
+        console.error('Error mounted ' + err)
+      }
     })
     .catch((map) => {
       console.log("map error: " + JSON.stringify(map))
     })
     // this.loadDrains()
     // this.loadLayers()
+    //console.log('mounting out')
   }
 }
 </script>

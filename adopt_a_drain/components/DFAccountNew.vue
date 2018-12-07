@@ -94,15 +94,22 @@
         v-if="form.submitStatus === 'PENDING'"
         class="typo__p">Sending...</p>
     </form>
-
+    <hr>
+    <div> {{ guest_template }}</div>
+    <hr>
+    <div> {{ add_user_template }}</div>
+    <hr>
+    <div> {{ guest_template }}</div>
+    <hr>
   </div>
 </template>
-
 <script>
 // import axios from 'axios'
 import { validationMixin } from 'vuelidate'
 import { required, minLength, helpers } from 'vuelidate/lib/validators'
-
+// import { hello } from './mixins/test_mixin.js'
+import { restTemplates } from './mixins/rest-templates.js'
+//import { requestify } from './mixins/requestify.js'
 const field_validate = function (astr, test) {
   let rc = false
   if(astr.length === 0){ // suppress warnings when field is blank
@@ -136,41 +143,21 @@ export default {
   data() {
     return {
       form: {
-        tmp: {},
+        tmp: {}, // ??
         data: {
           email: "del_me" + (Math.random()).toString() + "@del.com",
           password: 'aA1!aaaa'
         },
         submitStatus: null
       },
-
       page: {
         title: 'Account',
         subtitle: 'A little about you.'
-      },
-      payload: {
-        email: process.env.GUEST_USER,
-        password: process.env.GUEST_PW
-      },
-      headers: {
-          "Content-Type": 'application/json; charset=utf-8',
-          "Accept": "application/json; charset=utf-8",
-          "User-Agent": 'Mozilla/5.0',
-          "X-DreamFactory-Api-Key": process.env.DF_API_KEY,
-          "X-DreamFactory-Session-Token": null
-      },
-      options: {
-        rejectUnauthorized: false,
-        host: process.env.DF_HOST,
-        port: process.env.DF_PORT,
-        ssl_port: 443,
-        path: 'reset based on use',
-        method: 'POST',
-        responseType: 'json'
       }
     }
   },
-  mixins: [validationMixin],
+
+  mixins: [validationMixin, restTemplates],
   validations: {
     form: {
       data: {
@@ -191,24 +178,14 @@ export default {
     }
   },
   computed: {
-    add_user_params: function() {
-
-      return [
-          { "name": "email_", "value": this.form.data.email },
-          { "name": "password_", "value": this.form.data.password }
-        ]
-
-/*
-      return {"params": [
-          { "name": "email_", "value": this.form.data.email },
-          { "name": "password_", "value": this.form.data.password }
-        ],
-        "returns": "string"
-      }
-*/
+    guest_template: function() { // mixin
+      return this.getRestTemplate('guest')
     },
-    store: function () {
-      return this.$store.state
+    new_system_user_template: function() { // mixin
+      return this.getRestTemplate('new-system-user')
+    },
+    add_user_template: function() { // mixin
+      return this.getRestTemplate('add-user')
     },
     guest_session_token: function () {
       return this.$store.state.guest_session_token
@@ -219,48 +196,6 @@ export default {
     getUserName: function () {
       return this.$store.getters.getUserName
     },
-    /*
-    guestOptions: function () {
-      this.options.path = '/api/v2/user/session'
-      return {
-        rejectUnauthorized: false,
-        dataType: 'json',
-        url: 'http://'
-          + this.options.host
-          + ':'
-          + this.options.port
-          + this.options.path,
-        port: this.options.ssl_port,
-        method: this.options.method,
-        data: this.payload,
-        headers: this.headers
-      }
-    },
-    */
-    /*
-    newAccountOptions: function () {
-      this.options.path = '/api/v2/adopt_a_drain/_func/add_user'
-      return {
-        rejectUnauthorized: false,
-        dataType: 'json',
-        url: 'http://'
-          + this.options.host
-          + ':'
-          + this.options.port
-          + this.options.path,
-        port: this.options.ssl_port,
-        method: this.options.method,
-        headers: this.headers,
-        data: {
-            "resource": [ this.form.data ],
-            "params": [
-              { "name":"email_","value": this.form.data.email },
-              { "name":"password_","value": this.form.data.password }
-            ],
-            "returns": "string"
-        },
-      }
-    }*/
   },
   methods: {
     field_validate: function (astr, test) {
@@ -273,157 +208,74 @@ export default {
       }
       return rc
     },
-
-    requestify: function(lyr, lyrData) {
-      /*
-       * the guest login doesn't require a lyr = {}
-      */
-      //console.log('requestify 1')
-      let rest_request = {
-        rejectUnauthorized: false,
-        dataType: 'json',
-        port: 433,
-        method: 'POST',
-        url: null,
-        headers: null,
-        data: {},
-      }
-
-    //  console.log('requestify 2')
-      try {
-        if(lyr.source.type==='dreamfactory') {
-          //console.log('requestify 2.1')
-          // HEADERS
-          let headers = {
-            "Content-Type": 'application/json; charset=utf-8',
-            "Accept": "application/json; charset=utf-8",
-            "User-Agent": 'Mozilla/5.0',
-            "X-DreamFactory-Api-Key": process.env.DF_API_KEY
-          }
-
-          //console.log('requestify 2.1')
-          //  "X-DreamFactory-Session-Token": null
-          // ADD-User TO DB
-          if(lyr.type === 'func'){
-              console.log('requestify 2.2.1')
-
-              rest_request.url=lyr.source.connector.url_tmpl
-                .replace('%h',process.env.DF_HOST)
-                .replace('%p',process.env.DF_PORT)
-                console.log('requestify 2.2.2')
-            // Data
-            if(lyrData.data){
-              console.log('requestify 2.2.3')
-              console.log('lyrData.data: ' + lyrData.data)
-              rest_request.data = {resource: [ lyrData.data ] }
-              //rest_equest.data['xxxresource']=lyrData.data
-            }
-
-            if(lyrData.params){
-              console.log('requestify 2.2.4')
-              console.log('requestify 2.2.4.1 params: ' + JSON.stringify(lyrData.params))
-
-              rest_request.data['params']=lyrData.params
-            }
-
-            if(lyr.name === 'add-user'){
-              console.log('requestify 2.2.5')
-              rest_request.data['returns']="string"
-            }
-            console.log('requestify 2.2.6')
-            rest_request.headers = headers
-            rest_request.headers['X-DreamFactory-Session-Token']=lyrData.sessionToken
-            console.log('requestify 2.2.7')
-          }
-
-          // GUEST SIGNIN
-          if(lyr.type==='user-session'){
-            //console.log('requestify 2.1.1')
-            // HEADERS
-            rest_request.headers=headers
-            //console.log('requestify 2.1.2')
-            // URL
-            rest_request.url=lyr.source.connector.url_tmpl
-              .replace('%h',process.env.DF_HOST)
-              .replace('%p',process.env.DF_PORT)
-            //console.log('requestify 2.1.3')
-            // DATA
-            rest_request.data['email']= ' '
-            rest_request.data['password']= ' '
-            rest_request.data.email = lyr.data_tmpl.email.replace('%e',process.env.GUEST_USER)
-            rest_request.data.password = lyr.data_tmpl.password.replace('%p',process.env.GUEST_PW)
-            //console.log('requestify 2.1.4')
-            //df_request['data']['password'] = lyr['password'].replace('%e',process.env.GUEST_PW)
-          }
-        }
-        if(! rest_request.url ){
-          throw new Error('requestify is missing url')
-        }
-        if(! rest_request.headers ){
-          throw new Error('requestify is missing headers')
-        }
-        if(! rest_request.data ){
-          throw new Error('requestify is missing data')
-        }
-      }catch(err){
-        // console.log('ERROR $restify A: ' + JSON.stringify(lyr))
-        // console.log('ERROR $restify B:' + JSON.stringify(lyrData))
-        //console.log('-----')
-        console.error('ERROR requestify:' + err)
-
-        //show_object(df_request)
-      }
-      //show_object(df_request)
-      //console.log('resttify out: ' + JSON.stringify( df_request ))
-      //console.log('requestify out')
-
-      return rest_request
-    },
     submit: function () {
-console.log('submit 1')
+      let sessionToken = null
       this.$v.$touch()
       if (this.$v.$invalid) {
         this.form.submitStatus = 'ERROR'
       } else {
         // do your submit logic here
         this.form.submitStatus = 'PENDING'
-        //console.log('submit 2 this.guestOptions: ' + this.guestOptions)
         // LOGIN as GUEST
-        // console.log('this.guestOptions: ' + JSON.stringify(this.guestOptions))
-        // console.log('--')
-        let guest_tmpl = this.$getLayerTemplate('guest')
-        let user_session_request = this.requestify( guest_tmpl )
-        this.$axios( user_session_request )
+
+        //if(! this.$getLayerTemplate){
+          //throw Error('this.$getLayerTemplate not in root')
+        //}
+        // this.$axios( this.$requestify( this.guest_template ) )
+        this.$axios( this.requestify( this.guest_template ) )
           .then((response) => {
-
-
-            let add_user_tmpl = this.$getLayerTemplate('add-user')
-            let add_user_data = {
-              sessionToken: response.data.session_token,
-              data: this.form.data,
-              params: this.add_user_params
+            sessionToken = response.data.session_token
+            let new_system_user_tmpl = this.new_system_user_template
+            let new_system_user_data = {
+              sessionToken: sessionToken,
+              data: this.form.data
             }
-            let add_user_request = this.requestify( add_user_tmpl, add_user_data)
+            // let new_system_user_request = this.$requestify( new_system_user_tmpl, new_system_user_data)
+            let new_system_user_request = this.requestify( new_system_user_tmpl, new_system_user_data)
 
-            this.$axios( add_user_request )
+            /////////////////////
+
+            this.$axios( new_system_user_request ) // add database user
               .then((response) => {
-                console.log('submit 2.1.1 success')
-                let rc = JSON.parse(response.data)
-                switch ( rc.id ) {
-                  case -23505:
-                    this.form.submitStatus = 'DUPLICATE'
-                    break
-                  default:
-                    this.form.submitStatus = 'OK'
-                    this.$store.commit('set_user', rc)
+                //console.log('Made it')
+                //let add_user_tmpl = this.$getLayerTemplate('add-user')
+                let add_user_tmpl = this.add_user_template
+                let add_user_data = {
+                  sessionToken: sessionToken,
+                  data: this.form.data,
+                  params: [
+                      { "name": "email_", "value": this.form.data.email },
+                      { "name": "password_", "value": this.form.data.password }
+                    ]
                 }
+                // let add_user_request = this.$requestify( add_user_tmpl, add_user_data)
+                let add_user_request = this.requestify( add_user_tmpl, add_user_data)
+
+                this.$axios( add_user_request )
+                  .then((response) => {
+                    //console.log('submit 2.1.1 success')
+
+                    let rc = JSON.parse(response.data)
+                    switch ( rc.id ) {
+                      case -23505:
+                        this.form.submitStatus = 'DUPLICATE'
+                        break
+                      default:
+                        this.form.submitStatus = 'OK'
+                        this.$store.commit('set_user', rc)
+                    }
+                  })
+                  .catch((response) => {
+                    console.log("page submit err3")
+                    this.form.submitStatus = 'ERROR'
+                  })
+
               })
               .catch((response) => {
                 console.log("page submit err2")
                 this.form.submitStatus = 'ERROR'
               })
-
-              
+            ///////////////////
           })
 
           .catch((response) => {
